@@ -1,0 +1,107 @@
+@use './variables.scss';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--color-text);
+  background: var(--color-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-strong);
+}
+
+#app {
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.05), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(6, 182, 212, 0.06), transparent 40%),
+    var(--color-page);
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.glass-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Element Plus 基础外观微调 */
+:root {
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: #5283f0;
+  --el-color-primary-light-5: #7da3f4;
+  --el-color-primary-light-7: #a8c2f8;
+  --el-color-primary-light-9: #d4e1fb;
+  --el-font-size-base: 14px;
+  --el-border-radius-base: var(--radius-sm);
+}
+
+.el-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.el-button {
+  border-radius: var(--radius-md);
+  font-weight: 600;
+}
+
+.el-input__wrapper,
+.el-select .el-input__wrapper,
+.el-textarea__inner {
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.el-input__wrapper.is-focus,
+.el-select .el-input__wrapper.is-focus,
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.el-menu {
+  border-right: 1px solid var(--color-border);
+}
+
+.el-dropdown-menu,
+.el-popper.is-light {
+  border-radius: var(--radius-md);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.el-pagination {
+  padding: 10px 0;
+}
+
+.el-breadcrumb {
+  font-size: 13px;
+}

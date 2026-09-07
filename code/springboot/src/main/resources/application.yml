@@ -1,0 +1,30 @@
+server:
+  port: 8090
+  # 添加这行，让服务监听所有网络接口
+  address: 0.0.0.0
+
+# 启用JWT配置（取消注释）
+jwt:
+  secret: bXlzZWNyZXRrZXl3aXRoMzJieXRlc2xlbmd0aG9yamVjd2VudA==
+  expiration: 86400000
+
+spring:
+  datasource:
+    # 修改localhost为服务器IP或保持localhost（如果数据库在同一服务器）
+    url: jdbc:mysql://localhost:3306/medical?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2B8
+    driver-class-name: com.mysql.jdbc.Driver # 建议使用这个驱动
+    username: root
+    password: root
+  # 添加跨域配置
+  web:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "*"
+      allowed-headers: "*"
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  map-underscore-to-camel-case: true
+
+file-service:
+  url: http://127.0.0.1:5001/api

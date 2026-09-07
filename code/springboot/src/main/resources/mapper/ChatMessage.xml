@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ChatMessageMapper">
+    <resultMap id="ChatMessageResult" type="com.example.springboot.entity.ChatMessage">
+        <id property="id" column="id" />
+        <result property="sessionId" column="session_id" />
+        <result property="role" column="role" />
+        <result property="content" column="content" />
+        <result property="model" column="model" />
+        <result property="extraData" column="extra_data" />
+        <result property="messageTime" column="message_time" />
+    </resultMap>
+
+    <select id="listBySessionId" resultMap="ChatMessageResult">
+        select
+        id,
+        session_id,
+        role,
+        content,
+        model,
+        extra_data,
+        message_time
+        from chat_message
+        where session_id = #{sessionId}
+        order by message_time asc, id asc
+    </select>
+
+    <select id="getById" resultMap="ChatMessageResult">
+        select
+        id,
+        session_id,
+        role,
+        content,
+        model,
+        extra_data,
+        message_time
+        from chat_message
+        where id = #{id}
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into chat_message (
+        session_id,
+        role,
+        content,
+        model,
+        extra_data,
+        message_time
+        ) values (
+        #{sessionId},
+        #{role},
+        #{content},
+        #{model},
+        #{extraData},
+        #{messageTime}
+        )
+    </insert>
+
+    <delete id="deleteById">
+        delete from chat_message where id = #{id}
+    </delete>
+
+    <delete id="deleteBySessionId">
+        delete from chat_message where session_id = #{sessionId}
+    </delete>
+
+    <update id="updateContent">
+        update chat_message
+        set content = #{content}
+        where id = #{id}
+    </update>
+</mapper>

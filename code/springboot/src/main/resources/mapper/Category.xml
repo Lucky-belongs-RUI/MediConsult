@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.CategoryMapper">
+    <!-- 新增科室 -->
+    <insert id="save">
+        insert into category(
+        name,
+        description,
+        icon_bucket,
+        icon_object_key
+        ) values(
+        #{name},
+        #{description},
+        #{iconBucket},
+        #{iconObjectKey}
+        )
+        <!-- create_time和update_time依赖数据库默认值，无需手动插入 -->
+    </insert>
+
+    <!-- 根据ID更新科室信息 -->
+    <update id="updateById">
+        update category set
+        name=#{name},
+        description=#{description},
+        icon_bucket=#{iconBucket},
+        icon_object_key=#{iconObjectKey},
+        update_time=#{updateTime}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from category where id=#{id}
+    </delete>
+
+    <select id="list" resultType="com.example.springboot.entity.Category">
+        select
+        id,
+        name,
+        description,
+        icon_bucket as iconBucket,
+        icon_object_key as iconObjectKey,
+        create_time as createTime,
+        update_time as updateTime
+        from category
+        order by id desc
+    </select>
+
+    <select id="listByCondition" resultType="com.example.springboot.entity.Category">
+        select
+        id,
+        name,
+        description,
+        icon_bucket as iconBucket,
+        icon_object_key as iconObjectKey,
+        create_time as createTime,
+        update_time as updateTime
+        from category
+        <where>
+            <if test="name != null and name !=''">
+                name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getById" resultType="com.example.springboot.entity.Category">
+        select
+        id,
+        name,
+        description,
+        icon_bucket as iconBucket,
+        icon_object_key as iconObjectKey,
+        create_time as createTime,
+        update_time as updateTime
+        from category
+        where id = #{id}
+    </select>
+
+    <select id="selectByCategoryname" resultType="com.example.springboot.entity.Category">
+        SELECT id, name FROM category WHERE name = #{name}
+    </select>
+    <select id="countRelatedItem" resultType="java.lang.Integer">
+        select count(1)
+        from item
+        where category_id = #{categoryId}
+    </select>
+</mapper>

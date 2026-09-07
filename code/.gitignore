@@ -1,0 +1,41 @@
+# Environment & secrets
+*.env
+!*.env.example
+config.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Algo service data
+algo_service/data/
+algo_service/data/kg_uploaded/
+
+# File service storage
+file_service/file/
+file_service/storage/
+
+# Java
+*.class
+*.jar
+*.war
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

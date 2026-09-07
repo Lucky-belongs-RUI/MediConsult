@@ -1,0 +1,34 @@
+:root {
+  /* brand */
+  --color-primary: #2563eb;
+  --color-primary-strong: #1d4ed8;
+  --color-accent: #06b6d4;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* surface */
+  --color-page: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-divider: #e5e7eb;
+  --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
+  --shadow-strong: 0 18px 48px rgba(15, 23, 42, 0.12);
+
+  /* text */
+  --color-text: #0f172a;
+  --color-text-strong: #0b1531;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+
+  /* radius */
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  /* layout */
+  --container-width: 100%;
+  --section-gap: 20px;
+  --card-gap: 12px;
+}

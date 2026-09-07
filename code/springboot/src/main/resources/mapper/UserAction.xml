@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserActionMapper">
+
+    <!-- 新增用户行为 -->
+    <insert id="save">
+        insert into user_action(
+        user_id,
+        item_id,
+        action_type,
+        extra_data
+        ) values(
+        #{userId},
+        #{itemId},
+        #{actionType},
+        #{extraData}
+        )
+        <!-- create_time依赖数据库默认值，无需手动插入 -->
+    </insert>
+
+    <!-- 根据ID更新用户行为信息 -->
+    <update id="updateById">
+        update user_action set
+        user_id=#{userId},
+        item_id=#{itemId},
+        action_type=#{actionType},
+        extra_data=#{extraData}
+        where id = #{id}
+    </update>
+
+    <!-- 根据ID删除用户行为 -->
+    <delete id="deleteById">
+        delete from user_action where id=#{id}
+    </delete>
+
+    <!-- 查询所有用户行为列表 -->
+    <select id="list" resultType="com.example.springboot.entity.UserAction">
+        select
+        id,
+        user_id as userId,
+        item_id as itemId,
+        action_type as actionType,
+        extra_data as extraData,
+        create_time as createTime
+        from user_action
+        order by id desc
+    </select>
+
+    <!-- 根据条件查询用户行为列表 -->
+    <!-- 基于 user_action_vo 视图的条件查询 -->
+    <select id="listByCondition" resultType="com.example.springboot.entity.UserAction">
+        SELECT
+        id,
+        userId,
+        itemId,
+        actionType,
+        extraData,
+        actionTime AS createTime,
+        username,
+        title AS itemTitle
+        FROM user_action_vo
+        <where>
+            <!-- 用户名模糊查询（参数 username 对应视图 username 字段） -->
+            <if test="username != null and username != ''">
+                username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <!-- 病例标题模糊查询（参数 itemTitle 对应视图 title 字段） -->
+            <if test="itemTitle != null and itemTitle != ''">
+                AND title LIKE CONCAT('%', #{itemTitle}, '%')
+            </if>
+            <!-- 操作类型精确查询（参数 actionType 对应视图 actionType 字段，用视图别名） -->
+            <if test="actionType != null">
+                AND actionType = #{actionType}
+            </if>
+            <if test="userId != null">
+                AND userId = #{userId}
+            </if>
+        </where>
+        ORDER BY actionTime DESC
+    </select>
+
+    <!-- 根据ID查询用户行为 -->
+    <select id="getById" resultType="com.example.springboot.entity.UserAction">
+        select
+        id,
+        user_id as userId,
+        item_id as itemId,
+        action_type as actionType,
+        extra_data as extraData,
+        create_time as createTime
+        from user_action
+        where id = #{id}
+    </select>
+
+    <!-- 根据用户ID和病例ID查询用户行为 -->
+    <select id="selectByUserIdAndItemId" resultType="com.example.springboot.entity.UserAction">
+        SELECT
+        id,
+        user_id as userId,
+        item_id as itemId,
+        action_type as actionType
+        FROM user_action
+        WHERE user_id = #{userId} AND item_id = #{itemId}
+    </select>
+
+    <!-- 统计用户对某个病例的行为次数 -->
+    <select id="countByUserIdAndItemId" resultType="java.lang.Integer">
+        select count(1)
+        from user_action
+        where user_id = #{userId} and item_id = #{itemId}
+    </select>
+
+    <!-- 统计用户对某个病例的特定行为类型次数 -->
+    <select id="countByUserIdAndItemIdAndActionType" resultType="java.lang.Integer">
+        select count(1)
+        from user_action
+        where user_id = #{userId}
+        and item_id = #{itemId}
+        and action_type = #{actionType}
+    </select>
+
+    <!-- 统计用户的总行为数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        select count(1)
+        from user_action
+        where user_id = #{userId}
+    </select>
+
+    <!-- 统计病例被操作的总次数 -->
+    <select id="countByItemId" resultType="java.lang.Integer">
+        select count(1)
+        from user_action
+        where item_id = #{itemId}
+    </select>
+
+    <!-- 获取用户最近的行为记录 -->
+    <select id="listRecentActionsByUserId" resultType="com.example.springboot.entity.UserAction">
+        select
+        id,
+        user_id as userId,
+        item_id as itemId,
+        action_type as actionType,
+        extra_data as extraData,
+        create_time as createTime
+        from user_action
+        where user_id = #{userId}
+        order by create_time desc
+        limit #{limit}
+    </select>
+    <select id="getByitemId" resultType="com.example.springboot.entity.UserAction">
+        select
+        *
+        from user_action
+        where item_id = #{itemId}
+    </select>
+    <delete id="deleteByIds">
+        DELETE FROM user_action
+        WHERE id IN (
+        <!-- collection="idList"：对应 @Param("idList") 的参数名 -->
+        <foreach collection="idList" item="id" separator=",">
+            #{id}
+        </foreach>
+        )
+    </delete>
+
+</mapper>

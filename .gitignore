@@ -1,0 +1,39 @@
+# ---------- 本地运行环境（nvm 等，勿提交） ----------
+env/
+
+# ---------- 环境与密钥 ----------
+*.env
+!*.env.example
+config.env
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---------- 敏感/运行时数据（含样例医疗数据与用户上传文件） ----------
+code/algo_service/data/
+code/file_service/file/
+code/file_service/storage/
+
+# ---------- Java ----------
+*.class
+*.jar
+*.war
+target/
+
+# ---------- Node ----------
+node_modules/
+dist/
+
+# ---------- IDE ----------
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db

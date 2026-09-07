@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父工程：Spring Boot 官方 starter 父依赖（统一管理 Spring Boot 相关版本） -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.3</version>
+        <relativePath/> <!-- 从 Maven 仓库查找父依赖，而非本地相对路径 -->
+    </parent>
+
+    <!-- 项目基础信息 -->
+    <groupId>com.example</groupId>
+    <artifactId>springboot</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>springboot</name>
+    <description>Demo project for Spring Boot（集成 MyBatis-Plus、Swagger、JWT 等）</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 锁定 JSQLParser 版本为 4.0（与 PageHelper 5.3.2 兼容） -->
+            <dependency>
+                <groupId>com.github.jsqlparser</groupId>
+                <artifactId>jsqlparser</artifactId>
+                <version>4.5</version>
+            </dependency>
+
+
+        </dependencies>
+
+
+
+
+    </dependencyManagement>
+    <!-- 统一版本管理：便于后续维护，避免版本分散冲突 -->
+    <properties>
+        <java.version>8</java.version> <!-- 项目使用 JDK 8（与 Spring Boot 2.7.x 兼容） -->
+        <mybatis-plus.version>3.5.7</mybatis-plus.version> <!-- MyBatis-Plus 统一版本 -->
+        <mysql-connector.version>5.1.49</mysql-connector.version> <!-- MySQL 驱动版本（适配 MySQL 5.x） -->
+        <freemarker.version>2.3.30</freemarker.version> <!-- 代码生成器模板引擎版本 -->
+        <swagger.version>1.5.1.RELEASE</swagger.version> <!-- Swagger 2 版本 -->
+        <jjwt.version>0.11.5</jjwt.version> <!-- JWT 依赖统一版本 -->
+        <lombok.version>1.18.28</lombok.version> <!-- Lombok 版本（解决注解处理器版本缺失问题） -->
+    </properties>
+
+    <dependencies>
+        <!-- 1. Web 核心依赖（Spring MVC + 嵌入式 Tomcat） -->
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.0</version>
+        </dependency>
+
+        <!-- 2. 数据库相关依赖 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql-connector.version}</version>
+            <scope>runtime</scope> <!-- 运行时依赖（编译不依赖，避免打包冗余） -->
+        </dependency>
+
+        <!-- 3. MyBatis-Plus 核心依赖（含 MyBatis 核心 + Spring 整合） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <!-- MyBatis-Plus 扩展依赖（含分页插件、逻辑删除等功能） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <!-- MyBatis-Plus 代码生成器（用于自动生成 Entity、Mapper、Service 等代码） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
+        <!-- 4. 模板引擎（代码生成器依赖 Freemarker） -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>${freemarker.version}</version>
+        </dependency>
+
+        <!-- 5. 工具类依赖 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional> <!-- 可选依赖（避免传递给其他项目） -->
+        </dependency>
+
+        <!-- 6. 接口文档：Swagger 2（生成 API 文档，便于前后端联调） -->
+        <dependency>
+            <groupId>com.spring4all</groupId>
+            <artifactId>spring-boot-starter-swagger</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+
+        <!-- 7. 安全：JWT（用于接口身份认证，生成/解析 Token） -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 8. 分页插件：PageHelper（需解决 JSQLParser 版本冲突） -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>1.4.5</version>
+            <exclusions>
+                <!-- 排除 PageHelper 自带的低版本 JSQLParser，避免与 MyBatis-Plus 冲突 -->
+                <exclusion>
+                    <groupId>net.sf.jsqlparser</groupId>
+                    <artifactId>jsqlparser</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 9. 测试依赖（仅测试环境生效） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <!-- 排除 JUnit 4，默认使用 JUnit 5（Spring Boot 2.2+ 推荐） -->
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.22</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 1. Maven 编译插件（指定 JDK 版本，支持 Lombok 注解处理） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source> <!-- 编译源码 JDK 版本 -->
+                    <target>${java.version}</target> <!-- 生成字节码 JDK 版本 -->
+                    <annotationProcessorPaths>
+                        <!-- 引入 Lombok 注解处理器（确保 @Data 等注解生效） -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- 2. Spring Boot 打包插件（生成可执行 Jar 包） -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- 排除 Lombok 依赖（仅编译期需要，运行时无需打包） -->
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

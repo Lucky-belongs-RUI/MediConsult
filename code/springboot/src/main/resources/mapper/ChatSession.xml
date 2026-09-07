@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ChatSessionMapper">
+    <!-- 新增问诊会话（必填字段：user_id、session_name，创建/更新时间由数据库自动维护） -->
+    <insert id="save">
+        insert into chat_session(
+        user_id,
+        session_name
+        ) values(
+        #{userId},
+        #{sessionName}
+        )
+    </insert>
+
+    <!-- 根据ID更新问诊会话信息（仅更新可修改字段session_name，update_time由数据库自动更新） -->
+    <update id="updateById">
+        update chat_session set
+        session_name = #{sessionName}
+        where id = #{id}
+    </update>
+
+    <!-- 根据ID删除问诊会话（触发外键级联删除关联数据） -->
+    <delete id="deleteById">
+        delete from chat_session where id = #{id}
+    </delete>
+    <delete id="deleteBysessionId">
+        delete from chat_message where session_id = #{sessionId}
+    </delete>
+
+    <!-- 查询所有问诊会话（按ID倒序） -->
+    <select id="list" resultType="com.example.springboot.entity.ChatSession">
+        select
+        id,
+        user_id as userId,
+        session_name as sessionName,
+        create_time as createTime,
+        update_time as updateTime
+        from chat_session
+        where user_id=#{userId}
+        order by id desc
+    </select>
+
+    <!-- 按条件查询问诊会话（支持会话名称模糊查询） -->
+    <select id="listByCondition" resultType="com.example.springboot.entity.ChatSession">
+        select
+        id,
+        user_id as userId,
+        session_name as sessionName,
+        create_time as createTime,
+        update_time as updateTime
+        from chat_session
+        <where>
+            <if test="sessionName != null and sessionName != ''">
+                session_name like concat('%', #{sessionName}, '%')
+            </if>
+        </where>
+        order by id desc
+    </select>
+
+    <!-- 根据ID查询问诊会话详情 -->
+    <select id="getById" resultType="com.example.springboot.entity.ChatSession">
+        select
+        id,
+        user_id as userId,
+        session_name as sessionName,
+        create_time as createTime,
+        update_time as updateTime
+        from chat_session
+        where id = #{id}
+    </select>
+
+    <!-- 根据会话名称精确查询（修正原方法名和字段映射） -->
+    <select id="selectBySessionName" resultType="com.example.springboot.entity.ChatSession">
+        select id, user_id as userId, session_name as sessionName
+        from chat_session
+        where session_name = #{sessionName}
+    </select>
+</mapper>

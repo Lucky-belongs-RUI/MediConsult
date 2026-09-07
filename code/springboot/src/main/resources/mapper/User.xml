@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserMapper">
+    <!-- 新增用户 -->
+    <insert id="save">
+        insert into user(
+        username,
+        password,
+        real_name,
+        phone,
+        email,
+        avatar_bucket,
+        avatar_object_key,
+        role
+        ) values(
+        #{username},
+        #{password},
+        #{realName},
+        #{phone},
+        #{email},
+        #{avatarBucket},
+        #{avatarObjectKey},
+        #{role,jdbcType=TINYINT}
+        )
+        <!-- create_time和update_time依赖数据库默认值，无需手动插入 -->
+    </insert>
+
+    <!-- 根据ID更新用户信息 -->
+    <update id="updateById">
+        update user set
+        username=#{username},
+        real_name=#{realName},
+        phone=#{phone},
+        email=#{email},
+        avatar_bucket=#{avatarBucket},
+        avatar_object_key=#{avatarObjectKey},
+        role=#{role},
+        update_time=#{updateTime}
+        where id = #{id}
+    </update>
+
+
+
+    <update id="updatePasswordById">
+        UPDATE user
+        SET password = #{newPassword}
+        WHERE id = #{userId}
+    </update>
+    <update id="updateUserStatusById">
+        UPDATE user
+        SET
+        status = #{status}
+        WHERE
+        id = #{userId}
+    </update>
+    <update id="updataPassword">
+        update user set password =#{newPassword} where id=#{id} and password =#{oldPassword}
+    </update>
+
+
+    <delete id="deleteById">
+        delete from user where id=#{id}
+    </delete>
+
+
+    <select id="list" resultType="com.example.springboot.entity.User">
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        phone,
+        email,
+        avatar_bucket as avatarBucket,
+        avatar_object_key as avatarObjectKey,
+        role,
+        status,
+        create_time as createTime,
+        update_time as updateTime
+        from user
+        order by id desc
+    </select>
+
+
+    <select id="listByCondition" resultType="com.example.springboot.entity.User">
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        phone,
+        email,
+        avatar_bucket as avatarBucket,
+        avatar_object_key as avatarObjectKey,
+        role,
+        status,
+        create_time as createTime,
+        update_time as updateTime
+        from user
+        <where>
+            <!-- 修正原条件中字段名错误（name→username） -->
+            <if test="username != null and username !=''">
+                username like concat('%',#{username},'%')
+            </if>
+            <if test="realName != null and realName !=''">
+                and real_name like concat('%',#{realName},'%')
+            </if>
+            <!-- 新增角色和状态查询条件（可选） -->
+            <if test="role != null">
+                and role = #{role,jdbcType=TINYINT}
+            </if>
+            <if test="status != null">
+                and status = #{status,jdbcType=TINYINT}
+            </if>
+        </where>
+        order by id desc
+    </select>
+
+
+    <select id="getById" resultType="com.example.springboot.entity.User">
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        phone,
+        email,
+        avatar_bucket as avatarBucket,
+        avatar_object_key as avatarObjectKey,
+        role,
+        status,
+        create_time as createTime,
+        update_time as updateTime
+        from user
+        where id = #{id}
+    </select>
+    <select id="getByPass" resultType="com.example.springboot.entity.User">
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        phone,
+        email,
+        avatar_bucket as avatarBucket,
+        avatar_object_key as avatarObjectKey,
+        role,
+        status,
+        create_time as createTime,
+        update_time as updateTime
+        from user
+        where id=#{id} and password = #{oldPassword}
+    </select>
+    <select id="getByUandP" resultType="com.example.springboot.entity.User">
+        select
+        id,
+        username,
+        password,
+        real_name as realName,
+        phone,
+        email,
+        avatar_bucket as avatarBucket,
+        avatar_object_key as avatarObjectKey,
+        role,
+        status,
+        create_time as createTime,
+        update_time as updateTime
+        from user
+        where username = #{username} and password = #{password}
+    </select>
+    <select id="selectByUsername" resultType="com.example.springboot.entity.User">
+            SELECT id, username FROM user WHERE username = #{username}
+    </select>
+</mapper>

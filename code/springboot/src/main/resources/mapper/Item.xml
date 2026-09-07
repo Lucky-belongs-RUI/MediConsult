@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.ItemMapper">
+
+    <!-- 新增病例 -->
+    <insert id="save">
+        insert into item(
+        title,
+        description,
+        category_id,
+        user_id,
+        cover_bucket,
+        cover_object_key,
+        file_bucket,
+        file_object_key,
+        cover_url,
+        file_url,
+        tags,
+        extra_data
+        ) values(
+        #{title},
+        #{description},
+        #{categoryId},
+        #{userId},
+        #{coverBucket},
+        #{coverObjectKey},
+        #{fileBucket},
+        #{fileObjectKey},
+        #{coverUrl},
+        #{fileUrl},
+        #{tags},
+        #{extraData}
+        )
+        <!-- create_time和update_time依赖数据库默认值，无需手动插入 -->
+    </insert>
+
+    <!-- 根据ID更新病例信息 -->
+    <update id="updateById">
+        update item set
+        title=#{title},
+        description=#{description},
+        category_id=#{categoryId},
+        user_id=#{userId},
+        cover_bucket=#{coverBucket},
+        cover_object_key=#{coverObjectKey},
+        cover_url=#{coverUrl},
+        file_url=#{fileUrl},
+        file_bucket=#{fileBucket},
+        file_object_key=#{fileObjectKey},
+        tags=#{tags},
+        extra_data=#{extraData}
+        <!-- update_time依赖数据库ON UPDATE CURRENT_TIMESTAMP自动更新 -->
+        where id = #{id}
+    </update>
+
+    <!-- 根据ID删除病例 -->
+    <delete id="deleteById">
+        delete from item where id=#{id}
+    </delete>
+    <!-- 1. 新增：删除 user_action 中关联当前 item 的数据 -->
+    <delete id="deleteUserActionByItemId">
+        DELETE FROM user_action WHERE item_id = #{id}
+    </delete>
+
+
+    <!-- 查询所有病例列表 -->
+    <select id="list" resultType="com.example.springboot.entity.Item">
+        select
+        id,
+        title,
+        description,
+        category_id as categoryId,
+        user_id as userId,
+        cover_bucket as coverBucket,
+        cover_object_key as coverObjectKey,
+        file_bucket as fileBucket,
+        file_object_key as fileObjectKey,
+        tags,
+        extra_data as extraData,
+        create_time as createTime,
+        update_time as updateTime
+        from item
+        order by id desc
+    </select>
+
+    <!-- 根据条件查询病例列表 -->
+    <select id="listByCondition" resultType="com.example.springboot.vo.ItemVO">
+        select
+        i.id,
+        i.title,
+        i.description,
+        i.cover_url as coverUrl,
+        i.cover_bucket as coverBucket,
+        i.cover_object_key as coverObjectKey,
+        i.file_url as fileUrl,
+        i.file_bucket as fileBucket,
+        i.file_object_key as fileObjectKey,
+        i.tags,
+        i.extra_data as extraData,
+        i.user_id as userId,
+        u.real_name as userRealName,
+        i.create_time as createTime,
+        i.update_time as updateTime,
+
+        c.id as "category.id",
+        c.name as "category.name",
+        c.icon_object_key as "category.iconObjectKey",
+        c.icon_bucket as "category.iconBucket",
+        c.description as "category.description",
+        c.create_time as "category.createTime",
+        c.update_time as "category.updateTime",
+
+        (select count(*) from favorite f where f.item_id = i.id) as favorites,
+
+        (select count(*) from user_action ua where ua.item_id = i.id and ua.action_type = 0) as views
+        from item i
+
+        left join category c on i.category_id = c.id
+
+        left join user u on i.user_id = u.id
+        <where>
+            <if test="title != null and title != ''">
+                i.title like concat('%', #{title}, '%')
+            </if>
+            <if test="categoryId != null">
+                and i.category_id = #{categoryId}
+            </if>
+            <if test="userRealName != null and userRealName != ''">
+                and u.real_name like concat('%', #{userRealName}, '%')
+            </if>
+            <if test="tag != null and tag != ''">
+                and i.tags like concat('%', #{tag}, '%')
+            </if>
+        </where>
+        order by i.id desc
+    </select>
+
+    <!-- 根据ID查询病例 -->
+    <select id="getById" resultType="com.example.springboot.vo.ItemVO">
+        SELECT * FROM item_vo
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据标题查询病例 -->
+    <select id="selectByname" resultType="com.example.springboot.entity.Item">
+        SELECT
+        id,
+        title,
+        category_id as categoryId,
+        user_id as userId
+        FROM item
+        WHERE title = #{title}
+    </select>
+
+    <!-- 根据科室ID统计病例数量 -->
+    <select id="countByCategoryId" resultType="java.lang.Integer">
+        select count(1)
+        from item
+        where category_id = #{categoryId}
+    </select>
+
+    <!-- 根据用户ID统计病例数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        select count(1)
+        from item
+        where user_id = #{userId}
+    </select>
+    <select id="getById2" resultType="com.example.springboot.entity.Item">
+        SELECT * FROM item
+        WHERE id = #{id}
+    </select>
+    <select id="listCategoryId" resultType="com.example.springboot.vo.ItemVO">
+        select
+        i.id,
+        i.title,
+        i.description,
+        i.cover_url as coverUrl,
+        i.cover_bucket as coverBucket,
+        i.cover_object_key as coverObjectKey,
+        i.file_url as fileUrl,
+        i.file_bucket as fileBucket,
+        i.file_object_key as fileObjectKey,
+        i.tags,
+        i.extra_data as extraData,
+        i.user_id as userId,
+        u.real_name as userRealName,
+        i.create_time as createTime,
+        i.update_time as updateTime,
+
+        c.id as "category.id",
+        c.name as "category.name",
+        c.icon_object_key as "category.iconObjectKey",
+        c.icon_bucket as "category.iconBucket",
+        c.description as "category.description",
+        c.create_time as "category.createTime",
+        c.update_time as "category.updateTime",
+
+        (select count(*) from favorite f where f.item_id = i.id) as favorites,
+
+        (select count(*) from user_action ua where ua.item_id = i.id and ua.action_type = 0) as views
+        from item i
+
+        left join category c on i.category_id = c.id
+
+        left join user u on i.user_id = u.id
+        <where>
+            <if test="categoryId != null">
+                and i.category_id = #{categoryId}
+            </if>
+        </where>
+        order by i.id desc
+    </select>
+
+</mapper>
