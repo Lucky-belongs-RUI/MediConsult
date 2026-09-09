@@ -122,6 +122,12 @@ const queryParams = ref<UserActionQueryParams>({
   actionType: 0
 })
 
+const escapeHtml = (value: unknown): string => {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch])
+}
+
 const formatExtraData = (extraDataStr: string): string => {
   try {
     const extraData = JSON.parse(extraDataStr)
@@ -133,7 +139,7 @@ const formatExtraData = (extraDataStr: string): string => {
         displayTime = formatDateToChineseDay(displayTime)
       }
 
-      return `<span style="color: #409eff; font-weight: 600;">${displayTime}</span>`
+      return `<span style="color: #409eff; font-weight: 600;">${escapeHtml(displayTime)}</span>`
     }
 
     return '-'

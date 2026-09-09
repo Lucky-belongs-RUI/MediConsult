@@ -4,6 +4,7 @@ package com.example.springboot.mapper;
 import com.example.springboot.common.DataRequset.BaseRequest;
 import com.example.springboot.entity.Like;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public  interface LikeMapper {
 
     Like getById(Integer id);
 
-    void deleteById(Integer id);
+    void deleteById(@Param("itemId") Integer itemId, @Param("userId") Integer userId);
 
 
     List<Like> getByAllId(Integer itemId);

@@ -16,6 +16,7 @@ import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -45,11 +46,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void update(User user) {
-        User user1=userMapper.getById(user.getId());
-        user1.setAvatarBucket(user.getAvatarBucket());
-        user1.setAvatarObjectKey(user.getAvatarObjectKey());
-        userMapper.updateById(user1);
-
+        User existing = userMapper.getById(user.getId());
+        if (existing == null) {
+            throw new ServiceException("用户不存在");
+        }
+        // 仅合并前端传入的非空字段，保留未传字段的原有值
+        if (user.getRealName() != null) existing.setRealName(user.getRealName());
+        if (user.getPhone() != null) existing.setPhone(user.getPhone());
+        if (user.getEmail() != null) existing.setEmail(user.getEmail());
+        if (user.getRole() != null) existing.setRole(user.getRole());
+        if (user.getStatus() != null) existing.setStatus(user.getStatus());
+        if (user.getAvatarBucket() != null) existing.setAvatarBucket(user.getAvatarBucket());
+        if (user.getAvatarObjectKey() != null) existing.setAvatarObjectKey(user.getAvatarObjectKey());
+        existing.setUpdateTime(new Date());
+        userMapper.updateById(existing);
     }
 
     @Override
@@ -106,15 +116,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updatePassword(PasswordRequest request) {
-        int i = userMapper.updataPassword(request);
-        User admin = userMapper.getByPass(request.getId(),request.getOldPassword());
-        if (admin==null){
+        // 先校验原密码是否正确，再执行更新
+        User admin = userMapper.getByPass(request.getId(), request.getOldPassword());
+        if (admin == null) {
             throw new ServiceException("原密码错误");
         }
-        if (i<=0){
+        int i = userMapper.updataPassword(request);
+        if (i <= 0) {
             throw new ServiceException("修改密码失败");
         }
-
     }
 
     @Override
@@ -124,13 +134,7 @@ public class UserServiceImpl implements UserService {
         if (existingUser != null) {
             throw new ServiceException("用户名【" + username + "】已存在，请更换其他用户名");
         }
-
-        if (user.getStatus() == null) {
-            user.setStatus(0);
-        }
-
-
-        userMapper.save( user);
+        userMapper.save(user);
     }
 
 }

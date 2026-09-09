@@ -34,19 +34,14 @@ class SpringClient:
             return None
 
     async def fetch_items(self) -> List[Dict[str, Any]]:
-        data = await self._request("GET", "/item/list")
-        if isinstance(data, list):
-            return data
+        # 分页接口返回 ItemVO（含 categoryName），供 RAG 索引携带科室信息
+        data = await self._request("GET", "/item/page", params={"current": 1, "size": 1000})
+        if isinstance(data, dict) and isinstance(data.get("records"), list):
+            return data["records"]
         return []
 
     async def fetch_case(self, item_id: int) -> Optional[Dict[str, Any]]:
         data = await self._request("GET", f"/item/{item_id}")
-        if isinstance(data, dict):
-            return data
-        return None
-
-    async def fetch_chat_session(self, session_id: int) -> Optional[Dict[str, Any]]:
-        data = await self._request("GET", f"/chat/sessions/{session_id}")
         if isinstance(data, dict):
             return data
         return None

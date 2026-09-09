@@ -16,7 +16,7 @@ public interface LikeService {
     Like getById(Integer id);
 
 
-    void deleteById(Integer id);
+    void deleteById(Integer itemId, Integer userId);
 
 
     List<Like> getByAllId(Integer itemId);

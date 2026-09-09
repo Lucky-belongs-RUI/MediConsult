@@ -48,7 +48,3 @@ export function batchDeleteMyActions(ids: number[]): Promise<boolean> {
 export function getItemViewCount(itemId: number): Promise<number> {
   return request.get(`/user-action/view/count/${itemId}`)
 }
-
-export function getItemPurchaseCount(itemId: number): Promise<number> {
-  return request.get(`/user-action/purchase/count/${itemId}`)
-} 

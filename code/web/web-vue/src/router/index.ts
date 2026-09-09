@@ -117,6 +117,11 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        // 兼容旧链接：公开病例已并入病例库，旧地址自动跳转到病例库
+        path: 'public-cases',
+        redirect: '/user/items'
+      },
+      {
         path: 'item/:id',
         name: 'UserItemDetail',
         component: () => import('@/views/item/ItemDetail.vue'),
@@ -131,6 +136,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/chat/ChatView.vue'),
         meta: {
           title: 'AI问诊',
+          requiresAuth: true
+        }
+      },
+      {
+        path: 'my-cases',
+        name: 'UserMyCases',
+        component: () => import('@/views/user/MyCases.vue'),
+        meta: {
+          title: '我的病例',
           requiresAuth: true
         }
       },

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springboot.mapper.UserCaseMapper">
+
+    <sql id="baseColumns">
+        uc.id, uc.user_id, uc.item_id, uc.title, uc.patient_name, uc.age, uc.gender,
+        uc.category_id, uc.remark, uc.content, uc.ai_summary, uc.is_public, uc.create_time, uc.update_time
+    </sql>
+
+    <select id="listByCondition" resultType="com.example.springboot.entity.UserCase">
+        SELECT
+            <include refid="baseColumns"/>,
+            c.name AS categoryName,
+            u.real_name AS userRealName
+        FROM user_case uc
+        LEFT JOIN category c ON c.id = uc.category_id
+        LEFT JOIN user u ON u.id = uc.user_id
+        <where>
+            <if test="userId != null">
+                AND uc.user_id = #{userId}
+            </if>
+            <if test="isPublic != null">
+                AND uc.is_public = #{isPublic}
+            </if>
+            <if test="title != null and title != ''">
+                AND uc.title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND uc.category_id = #{categoryId}
+            </if>
+        </where>
+        ORDER BY uc.update_time DESC, uc.id DESC
+    </select>
+
+    <select id="getById" resultType="com.example.springboot.entity.UserCase">
+        SELECT
+            <include refid="baseColumns"/>,
+            c.name AS categoryName,
+            u.real_name AS userRealName
+        FROM user_case uc
+        LEFT JOIN category c ON c.id = uc.category_id
+        LEFT JOIN user u ON u.id = uc.user_id
+        WHERE uc.id = #{id}
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_case (user_id, item_id, title, patient_name, age, gender, category_id, remark, content, ai_summary, is_public)
+        VALUES (#{userId}, #{itemId}, #{title}, #{patientName}, #{age}, #{gender}, #{categoryId}, #{remark}, #{content}, #{aiSummary}, #{isPublic})
+    </insert>
+
+    <update id="updateById">
+        UPDATE user_case
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="patientName != null">patient_name = #{patientName},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="aiSummary != null">ai_summary = #{aiSummary},</if>
+            <if test="isPublic != null">is_public = #{isPublic},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM user_case WHERE id = #{id}
+    </delete>
+
+    <update id="updateVisibility">
+        UPDATE user_case SET is_public = #{isPublic}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="updateItemId">
+        UPDATE user_case SET item_id = #{itemId}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>

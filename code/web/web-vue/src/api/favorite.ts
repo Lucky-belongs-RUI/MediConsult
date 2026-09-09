@@ -7,8 +7,8 @@ export const favoriteApi = {
     return request.post('/favorite', data)
   },
 
-  remove: (itemId: number) => {
-    return request.delete(`/favorite/${itemId}`)
+  remove: (itemId: number, userId?: number) => {
+    return request.delete(`/favorite/${itemId}`, { params: { userId } })
   },
 
   status: (itemId: number,userId: number) => {

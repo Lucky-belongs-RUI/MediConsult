@@ -4,7 +4,6 @@ import json
 import math
 import re
 from collections import Counter
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -19,7 +18,6 @@ def tokenize(text: str) -> List[str]:
     return [token.lower() for token in TOKEN_PATTERN.findall(text or "")]
 
 
-@dataclass
 class KnowledgeGraphStore:
 
     def __init__(self, storage_file: Optional[Path] = None) -> None:
@@ -140,6 +138,61 @@ class KnowledgeGraphStore:
             for triple in record.triples:
                 texts.append(triple.as_text())
         return texts
+
+    def get_graph_data(self, max_nodes: int = 400, max_edges: int = 1500) -> Dict[str, Any]:
+        """将全部三元组组装为图数据（节点去重、按度数截断），供前端可视化"""
+        records = self.load()
+        nodes_map: Dict[str, Dict[str, Any]] = {}
+        edges: List[Dict[str, Any]] = []
+
+        def ensure_node(category: str, name: str) -> str:
+            name = name.strip(' "\'“”‘’')
+            key = f"{category}::{name}"
+            if key not in nodes_map:
+                nodes_map[key] = {
+                    "id": key,
+                    "name": name,
+                    "category": category,
+                    "degree": 0,
+                }
+            return key
+
+        for record in records:
+            category = record.disease_name or "未分类"
+            for triple in record.triples:
+                if len(edges) >= max_edges:
+                    break
+                subject = (triple.subject or "").strip(' "\'“”‘’')
+                object_ = (triple.object or "").strip(' "\'“”‘’')
+                if not subject or not object_:
+                    continue
+                source_key = ensure_node(category, subject)
+                target_key = ensure_node(category, object_)
+                nodes_map[source_key]["degree"] += 1
+                nodes_map[target_key]["degree"] += 1
+                edges.append({
+                    "source": source_key,
+                    "target": target_key,
+                    "label": (triple.predicate or "").strip(' "\'“”‘’'),
+                    "category": category,
+                })
+
+        all_nodes = list(nodes_map.values())
+        all_nodes.sort(key=lambda n: n["degree"], reverse=True)
+        kept_nodes = all_nodes[:max_nodes]
+        kept_keys = {n["id"] for n in kept_nodes}
+        kept_edges = [e for e in edges if e["source"] in kept_keys and e["target"] in kept_keys]
+
+        return {
+            "exists": len(kept_nodes) > 0,
+            "node_count": len(kept_nodes),
+            "edge_count": len(kept_edges),
+            "total_node_count": len(all_nodes),
+            "total_edge_count": len(edges),
+            "categories": sorted({n["category"] for n in kept_nodes}),
+            "nodes": kept_nodes,
+            "edges": kept_edges,
+        }
 
 
 knowledge_graph_store = KnowledgeGraphStore()

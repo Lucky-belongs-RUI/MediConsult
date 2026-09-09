@@ -134,7 +134,7 @@ const handleRemoveFavorite = (itemId: number) => {
     type: 'warning'
   }).then(async () => {
     try {
-      await favoriteApi.remove(itemId)
+      await favoriteApi.remove(itemId, userId.value)
       ElMessage.success('取消病例收藏成功')
       fetchFavorites()
     } catch (error) {

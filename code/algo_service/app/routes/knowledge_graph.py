@@ -25,6 +25,12 @@ async def status():
     return success(stats)
 
 
+@router.get("/graph")
+async def get_graph():
+    """返回已构建知识图谱的图数据（节点+关系），供前端可视化展示"""
+    return success(knowledge_graph_store.get_graph_data())
+
+
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     kg_data_dir = settings.BASE_DIR / "data" / "kg_uploaded"
@@ -60,20 +66,29 @@ async def build_knowledge_graph(payload: BuildRequest):
         if result is None:
             raise HTTPException(status_code=500, detail="构建知识图谱失败：文件读取错误")
         triples, category = result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"执行构建时出错: {e}")
         raise HTTPException(status_code=500, detail="构建知识图谱失败")
-    
+
+    if not triples:
+        raise HTTPException(status_code=400, detail="未从Excel中提取到任何三元组，请检查LLM API配置与文件内容")
+
     from app.services.knowledge_graph.models import KnowledgeGraphRecord
-    
+
     record = KnowledgeGraphRecord(
         disease_name=category,
         disease_info={"source": str(file_path)},
         triples=triples
     )
-    
-    knowledge_graph_store.save([record])
-    
+
+    # 同类别覆盖更新、不同类别累积保存（支持多次构建多个知识类别）
+    existing = knowledge_graph_store.load()
+    kept = [r for r in existing if r.disease_name != category]
+    kept.append(record)
+    knowledge_graph_store.save(kept)
+
     return success({
         "category": category,
         "triple_count": len(triples),

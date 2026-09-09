@@ -94,7 +94,7 @@
                 <span class="section-title">患者基本信息</span>
               </div>
             </template>
-            <div class="patient-info-grid">
+            <div class="patient-info-grid" v-if="parseExtraData(item.extraData).gender || parseExtraData(item.extraData).age || parseExtraData(item.extraData).vitalSigns">
               <div class="info-item" v-if="parseExtraData(item.extraData).gender">
                 <span class="info-label">性别</span>
                 <span class="info-value">{{ parseExtraData(item.extraData).gender }}</span>
@@ -108,6 +108,10 @@
                 <span class="info-value">{{ parseExtraData(item.extraData).vitalSigns }}</span>
               </div>
             </div>
+            <div class="patient-info-text" v-if="parseExtraData(item.extraData).basic_info">
+              <p class="patient-info-text-content">{{ parseExtraData(item.extraData).basic_info }}</p>
+            </div>
+            <p v-if="!parseExtraData(item.extraData).gender && !parseExtraData(item.extraData).age && !parseExtraData(item.extraData).vitalSigns && !parseExtraData(item.extraData).basic_info" class="no-data">暂无患者基本信息</p>
           </el-card>
 
           <el-card class="case-section-card" v-if="item.extraData">
@@ -118,9 +122,9 @@
               </div>
             </template>
             <div class="symptoms-content">
-              <div class="symptoms-description" v-if="parseExtraData(item.extraData).symptoms">
+              <div class="symptoms-description" v-if="parseExtraData(item.extraData).symptoms || parseExtraData(item.extraData).clinical">
                 <h4>症状描述</h4>
-                <p class="symptom-text">{{ parseExtraData(item.extraData).symptoms }}</p>
+                <p class="symptom-text">{{ parseExtraData(item.extraData).symptoms || parseExtraData(item.extraData).clinical }}</p>
               </div>
               <div class="symptoms-tags" v-if="(item as any).tagList && (item as any).tagList.length > 0">
                 <h4>症状标签</h4>
@@ -186,7 +190,7 @@
             </div>
           </el-card>
 
-          <el-card class="case-section-card" v-if="item.extraData">
+          <el-card class="case-section-card" v-if="item.extraData && (parseExtraData(item.extraData).precautions || parseExtraData(item.extraData).followUp || parseExtraData(item.extraData).follow_up)">
             <template #header>
               <div class="section-header">
                 <el-icon class="section-icon"><InfoFilled /></el-icon>
@@ -200,10 +204,10 @@
                   <p class="precautions-text">{{ parseExtraData(item.extraData).precautions }}</p>
                 </div>
               </div>
-              <div class="follow-up" v-if="parseExtraData(item.extraData).followUp">
+              <div class="follow-up" v-if="parseExtraData(item.extraData).followUp || parseExtraData(item.extraData).follow_up">
                 <h4>随访要求</h4>
                 <div class="follow-up-box">
-                  <p class="follow-up-text">{{ parseExtraData(item.extraData).followUp }}</p>
+                  <p class="follow-up-text">{{ parseExtraData(item.extraData).followUp || parseExtraData(item.extraData).follow_up }}</p>
                 </div>
               </div>
             </div>
@@ -369,10 +373,15 @@ const getCurrentUserId = (): number | null => {
 const fetchItemDetail = async () => {
   try {
     loading.value = true
-    const data = await itemApi.getById(Number(route.params.id))
+    const rawId = Number(route.params.id)
+    if (!rawId || Number.isNaN(rawId)) {
+      ElMessage.error('病例ID无效')
+      loading.value = false
+      return
+    }
+    const data = await itemApi.getById(rawId)
 
     item.value = data
-    console.log(data)
     if (item.value) {
       const itemAny = item.value as any
       if (typeof itemAny.tags === 'string') {

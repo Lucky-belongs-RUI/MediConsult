@@ -143,55 +143,59 @@ const queryParams = ref<UserActionQueryParams>({
   actionType: undefined
 })
 
+const escapeHtml = (value: unknown): string => {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch])
+}
+
 const formatExtraData = (extraDataStr: string): string => {
   try {
     const extraData = JSON.parse(extraDataStr)
 
     if (extraData.viewTime) {
       let displayTime = extraData.viewTime
-
       if (typeof displayTime === 'string' && displayTime.includes('T')) {
         displayTime = formatDateToChineseDay(displayTime)
       }
-      
-      return `<div style="color: #409eff; font-weight: 600;">查看时间: ${displayTime}</div>`
+      return `<div style="color: #409eff; font-weight: 600;">查看时间: ${escapeHtml(displayTime)}</div>`
     }
-    
+
     if (extraData.consultTime || extraData.symptoms || extraData.medications) {
       let formattedData = '<div style="display: flex; flex-direction: column; gap: 8px;">'
-      
+
       if (extraData.consultId) {
         formattedData += `<div style="margin-bottom: 5px;">
           <span style="font-weight: 600; color: #606266; margin-right: 5px;">咨询号:</span>
-          <span style="color: #333;">${extraData.consultId}</span>
+          <span style="color: #333;">${escapeHtml(extraData.consultId)}</span>
         </div>`
       }
-      
+
       if (extraData.consultTime) {
         formattedData += `<div style="margin-bottom: 5px;">
           <span style="font-weight: 600; color: #606266; margin-right: 5px;">咨询时间:</span>
-          <span style="color: #409eff; font-weight: 600;">${extraData.consultTime}</span>
+          <span style="color: #409eff; font-weight: 600;">${escapeHtml(extraData.consultTime)}</span>
         </div>`
       }
-      
+
       if (extraData.symptoms) {
         formattedData += `<div style="margin-bottom: 5px;">
           <div style="font-weight: 600; color: #606266; margin-bottom: 3px;">症状描述:</div>
-          <div style="color: #333; font-size: 12px; line-height: 1.4; background: #f5f7fa; padding: 4px 6px; border-radius: 3px;">${extraData.symptoms}</div>
+          <div style="color: #333; font-size: 12px; line-height: 1.4; background: #f5f7fa; padding: 4px 6px; border-radius: 3px;">${escapeHtml(extraData.symptoms)}</div>
         </div>`
       }
-      
+
       if (extraData.medications) {
         formattedData += `<div style="margin-bottom: 5px;">
           <div style="font-weight: 600; color: #606266; margin-bottom: 3px;">用药方案:</div>
-          <div style="color: #333; font-size: 12px; line-height: 1.4; background: #f0f9ff; padding: 4px 6px; border-radius: 3px; border-left: 2px solid #409eff;">${extraData.medications}</div>
+          <div style="color: #333; font-size: 12px; line-height: 1.4; background: #f0f9ff; padding: 4px 6px; border-radius: 3px; border-left: 2px solid #409eff;">${escapeHtml(extraData.medications)}</div>
         </div>`
       }
-      
+
       formattedData += '</div>'
       return formattedData
     }
-    
+
     return '-'
   } catch (e) {
     return '-'

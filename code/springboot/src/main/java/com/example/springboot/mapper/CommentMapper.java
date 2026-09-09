@@ -1,7 +1,7 @@
 package com.example.springboot.mapper;
 
 
-import com.example.springboot.common.DataRequset.BaseRequest;
+import com.example.springboot.common.DataRequset.CommentPageRequest;
 import com.example.springboot.entity.Comment;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -12,7 +12,7 @@ import java.util.List;
 public  interface CommentMapper {
     List<Comment> list();
 
-    List<Comment>  listByCondition(BaseRequest baseRequest);
+    List<Comment>  listByCondition(CommentPageRequest pageRequest);
 
     void save(Comment user);
 

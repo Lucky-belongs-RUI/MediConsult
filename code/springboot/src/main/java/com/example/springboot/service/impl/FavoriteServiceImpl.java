@@ -42,9 +42,9 @@ public class FavoriteServiceImpl implements FavoriteService {
 
 
     @Override
-    public void deleteById(Integer id) {
+    public void deleteById(Integer itemId, Integer userId) {
 
-        favoriteMapper.deleteById(id);
+        favoriteMapper.deleteById(itemId, userId);
 
     }
 

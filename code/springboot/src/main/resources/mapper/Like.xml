@@ -17,7 +17,7 @@
     
 
     <delete id="deleteById">
-        delete from  `like` where item_id=#{itemId}
+        delete from  `like` where item_id=#{itemId} and user_id=#{userId}
     </delete>
 
     <select id="list" resultType="com.example.springboot.entity.Like">

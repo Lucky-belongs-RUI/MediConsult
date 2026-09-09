@@ -58,9 +58,9 @@ public class FavoriteController {
 
         return Result.success(favoriteService.page(pageRequest));
     }
-    @DeleteMapping("/{id}")
-    public Result delete(@PathVariable Integer id){
-        favoriteService.deleteById(id);
+    @DeleteMapping("/{itemId}")
+    public Result delete(@PathVariable Integer itemId, @RequestParam Integer userId){
+        favoriteService.deleteById(itemId, userId);
         return Result.success();
     }
 

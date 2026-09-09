@@ -36,7 +36,7 @@ const toggleFavorite = async () => {
   loading.value = true
   try {
     if (isFavorite.value) {
-      await favoriteApi.remove(props.itemId)
+      await favoriteApi.remove(props.itemId, userId)
       isFavorite.value = false
       emit('unfavorite')
     } else {

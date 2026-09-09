@@ -42,9 +42,9 @@ public class LikeServiceImpl implements LikeService {
 
 
     @Override
-    public void deleteById(Integer id) {
+    public void deleteById(Integer itemId, Integer userId) {
 
-        likeMapper.deleteById(id);
+        likeMapper.deleteById(itemId, userId);
 
     }
 

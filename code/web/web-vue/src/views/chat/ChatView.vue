@@ -4,8 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { chatApi } from '@/api/chat'
 import type { ChatSession as ChatSessionType } from '@/types/chat'
+import type { ConsultInfo } from '@/types/chat'
 import SessionList from './SessionList.vue'
 import ChatSession from './ChatSession.vue'
+import ConsultInfoDialog from '@/components/chat/ConsultInfoDialog.vue'
+import { categoryApi } from '@/api/category'
+import type { CategoryVO } from '@/types/item'
 import { useUserStore } from '@/stores/user'
 const userStore = useUserStore()
 const userId = computed(() => userStore.userInfo?.id)
@@ -27,10 +31,44 @@ const containerStyle = computed(() => {
   }
 })
 
+// 新建问诊弹窗
+const showConsultDialog = ref(false)
+const categories = ref<CategoryVO[]>([])
+/** 当前会话的问诊基础信息 */
+const activeConsultInfo = ref<ConsultInfo | null>(null)
+/** 各会话对应的问诊基础信息（会话切换时恢复） */
+const consultInfoMap = new Map<number, ConsultInfo>()
+
+const loadCategories = async () => {
+  try {
+    categories.value = await categoryApi.list()
+  } catch (error) {
+    console.error('获取科室列表失败', error)
+  }
+}
+
 const handleSelectSession = async (sessionId: number) => {
+  if (!sessionId || Number.isNaN(Number(sessionId))) {
+    return
+  }
   currentSessionId.value = sessionId
 
   router.replace(`/user/chat?sessionId=${sessionId}`)
+
+  // 优先使用会话内缓存；刷新后缓存丢失时从后端会话记录恢复问诊基础信息
+  activeConsultInfo.value = consultInfoMap.get(sessionId) || null
+  if (!activeConsultInfo.value) {
+    try {
+      const session = await chatApi.getSession(sessionId)
+      if (session?.extraData) {
+        const parsed = JSON.parse(session.extraData)
+        activeConsultInfo.value = parsed
+        consultInfoMap.set(sessionId, parsed)
+      }
+    } catch (error) {
+      console.error('恢复问诊基础信息失败:', error)
+    }
+  }
 
   if (isMobileDevice.value) {
     showSessionList.value = false
@@ -42,6 +80,15 @@ const handleSessionLoaded = (session: ChatSessionType) => {
 }
 
 const handleCreateSession = async () => {
+  if (loading.value) return
+
+  // 先填写问诊基础信息
+  showConsultDialog.value = true
+}
+
+const onConsultDialogConfirm = async (info: ConsultInfo) => {
+  showConsultDialog.value = false
+
   try {
     loading.value = true
 
@@ -51,12 +98,16 @@ const handleCreateSession = async () => {
       hour: 'numeric',
       minute: 'numeric'
     })
-    const sessionName = `新的问诊 (${timestamp})`
+    const sessionName = info.consultName || `新的问诊 (${timestamp})`
 
     const newSession = await chatApi.createSession({
-      userId: userId.value?userId.value:0,
-      sessionName: sessionName
+      userId: userId.value ? userId.value : 0,
+      sessionName: sessionName,
+      extraData: JSON.stringify(info)
     })
+
+    consultInfoMap.set(newSession.id, { ...info })
+    activeConsultInfo.value = { ...info }
 
     handleSelectSession(newSession.id)
 
@@ -69,11 +120,23 @@ const handleCreateSession = async () => {
   }
 }
 
+const onConsultDialogCancel = () => {
+  showConsultDialog.value = false
+}
+
 const handleDeleteSession = async (session: ChatSessionType) => {
   try {
     loading.value = true
     await chatApi.deleteSession(session.id)
     ElMessage.success('删除成功')
+
+    consultInfoMap.delete(session.id)
+    if (activeConsultInfo.value) {
+      // 删除的是当前会话时清除基础信息
+      if (currentSessionId.value === session.id) {
+        activeConsultInfo.value = null
+      }
+    }
 
     if (currentSessionId.value === session.id) {
       currentSessionId.value = null
@@ -91,7 +154,7 @@ const handleDeleteSession = async (session: ChatSessionType) => {
 
 const fetchAndSelectNewSession = async () => {
   try {
-    const sessions = await chatApi.getUserSessions(userId.value?userId.value:0)
+    const sessions = await chatApi.getUserSessions(userId.value ? userId.value : 0)
 
     if (sessions.length > 0) {
       handleSelectSession(sessions[0].id)
@@ -132,8 +195,13 @@ onMounted(() => {
   const sessionIdParam = route.query.sessionId
 
   if (sessionIdParam) {
-    handleSelectSession(Number(sessionIdParam))
+    const sessionId = Number(sessionIdParam)
+    if (!Number.isNaN(sessionId)) {
+      handleSelectSession(sessionId)
+    }
   }
+
+  loadCategories()
 
   window.addEventListener('resize', handleResize)
 
@@ -158,6 +226,8 @@ onMounted(() => {
     <ChatSession
       :session-id="currentSessionId"
       :show-back-button="isMobileDevice"
+      :consult-info="activeConsultInfo"
+      :categories="categories"
       @back="handleBack"
       @create-session="handleCreateSession"
       @clear-messages="handleClearMessages"
@@ -169,6 +239,14 @@ onMounted(() => {
         </button>
       </template>
     </ChatSession>
+
+    <ConsultInfoDialog
+      :visible="showConsultDialog"
+      :categories="categories"
+      @update:visible="showConsultDialog = $event"
+      @confirm="onConsultDialogConfirm"
+      @cancel="onConsultDialogCancel"
+    />
   </div>
 </template>
 
@@ -221,4 +299,4 @@ onMounted(() => {
     border-radius: 0;
   }
 }
-</style> 
+</style>

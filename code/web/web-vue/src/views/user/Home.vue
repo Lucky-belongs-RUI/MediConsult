@@ -243,7 +243,7 @@ import { ArrowRight, Picture, View, Star, Grid, ChatDotRound, Loading } from '@e
 import { itemApi } from '@/api/item'
 import { categoryApi } from '@/api/category'
 import { favoriteApi } from '@/api/favorite'
-import { pageMyActions, getItemViewCount } from '@/api/userAction'
+import { pageMyActions } from '@/api/userAction'
 
 const defaultAvatar = 'https://img0.baidu.com/it/u=520343531,2599065610&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500'
 const defaultCover = 'https://image.benlailife.com/Content/images/ErrorNoPic/big.jpg'
@@ -317,17 +317,6 @@ const fetchRecommendedItems = async () => {
     })
     recommendedItems.value = res.records
 
-    for (const item of recommendedItems.value) {
-      try {
-        const favoriteCount = await favoriteApi.getItemFavoriteCount(item.id)
-        item.favorites = favoriteCount
-
-        const viewCount = await getItemViewCount(item.id)
-        item.views = viewCount
-      } catch (error) {
-        console.error(`获取病例${item.id}的统计数据失败`, error)
-      }
-    }
   } catch (error) {
     console.error('获取常见病例失败', error)
   }
@@ -341,19 +330,6 @@ const fetchPopularItems = async () => {
     })
     let items = res.records
 
-    for (const item of items) {
-      try {
-        const favoriteCount = await favoriteApi.getItemFavoriteCount(item.id)
-        item.favorites = favoriteCount || 0
-
-        const viewCount = await getItemViewCount(item.id)
-        item.views = viewCount || 0
-      } catch (error) {
-        console.error(`获取病例${item.id}的统计数据失败`, error)
-        item.favorites = item.favorites || 0
-        item.views = item.views || 0
-      }
-    }
 
     items.sort((a, b) => {
       const scoreA = ((a.favorites ?? 0) * 1.5) + ((a.views ?? 0) * 0.7)

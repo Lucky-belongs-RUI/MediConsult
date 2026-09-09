@@ -37,7 +37,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/algo/, '/api'),
       },
       '/file': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/file/, '/api'),
       },

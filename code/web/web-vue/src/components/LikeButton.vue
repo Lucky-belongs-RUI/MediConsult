@@ -41,7 +41,7 @@ const toggleLike = async () => {
   loading.value = true
   try {
     if (isLiked.value) {
-      await likeApi.unlike(props.itemId)
+      await likeApi.unlike(props.itemId, userId)
       isLiked.value = false
       likeCount.value = Math.max(0, likeCount.value - 1)
       emit('unlike')

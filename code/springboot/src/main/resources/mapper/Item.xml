@@ -5,7 +5,7 @@
 <mapper namespace="com.example.springboot.mapper.ItemMapper">
 
     <!-- 新增病例 -->
-    <insert id="save">
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
         insert into item(
         title,
         description,
@@ -100,6 +100,7 @@
         i.tags,
         i.extra_data as extraData,
         i.user_id as userId,
+        i.category_id as categoryId,
         u.real_name as userRealName,
         i.create_time as createTime,
         i.update_time as updateTime,

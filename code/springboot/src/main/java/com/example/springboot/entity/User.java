@@ -1,6 +1,7 @@
 package com.example.springboot.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.util.Date;
 
@@ -20,6 +21,8 @@ public class User {
     private String email;
     private String avatarBucket;
     private String avatarObjectKey;
+    @TableField(exist = false)
+    private String avatarUrl;
     private Integer role;
     private Integer status;
     @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")

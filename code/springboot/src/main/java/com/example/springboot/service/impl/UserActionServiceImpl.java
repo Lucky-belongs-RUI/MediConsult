@@ -39,8 +39,10 @@ public class UserActionServiceImpl implements UserActionService {
         for (UserAction user:users
              ) {
             Item item=itemService.getById2(user.getItemId());
-            Category category= categoryService.getById(item.getCategoryId());
-            user.setCategory(category);
+            if (item != null) {
+                Category category= categoryService.getById(item.getCategoryId());
+                user.setCategory(category);
+            }
         }
 
 

@@ -16,7 +16,7 @@ public interface FavoriteService {
     Favorite getById(Integer id);
 
 
-    void deleteById(Integer id);
+    void deleteById(Integer itemId, Integer userId);
 
 
     List<Favorite> getByAllId(Integer itemId);

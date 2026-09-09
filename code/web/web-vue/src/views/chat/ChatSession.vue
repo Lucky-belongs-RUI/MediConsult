@@ -9,10 +9,16 @@ import { vectorIndexApi, knowledgeGraphApi } from '@/api/vector'
 import ChatMessageComponent from '@/components/chat/ChatMessage.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ModelSelector from '@/components/chat/ModelSelector.vue'
+import { userCaseApi } from '@/api/userCase'
+import { useUserStore } from '@/stores/user'
+import type { ConsultInfo } from '@/types/chat'
+import type { UserCaseAddDTO } from '@/types/userCase'
 
 const props = defineProps<{
   sessionId?: number | null;
   showBackButton?: boolean;
+  consultInfo?: ConsultInfo | null;
+  categories?: Array<{ id: number; name: string }>;
 }>();
 
 const emits = defineEmits<{
@@ -152,7 +158,8 @@ const handleNormalResponse = async (tempMessage: ChatMessage, imageInfo?: { url:
       historyMessages,
       enableRAG.value,
       enableKnowledgeGraph.value,
-      imageInfo
+      imageInfo,
+      props.consultInfo
     )
     
     if (enableRAG.value && ragResponse.rewritten_query) {
@@ -224,6 +231,74 @@ const updateAiMessageInDatabase = async (messageId: number, content: string) => 
 
 const goBack = () => {
   emits('back')
+}
+
+const userStore = useUserStore()
+const userCaseSaving = ref(false)
+
+const saveAsUserCase = async () => {
+  if (!props.sessionId) return
+  if (!userStore.userInfo?.id) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  if (messages.value.length === 0) {
+    ElMessage.warning('当前问诊没有对话记录，无法记录病例')
+    return
+  }
+
+  try {
+    userCaseSaving.value = true
+
+    const info = props.consultInfo
+    const lines: string[] = []
+    lines.push('【问诊名称】' + (info?.consultName || session.value?.sessionName || '我的问诊'))
+    if (info?.patientName) lines.push('【患者姓名】' + info.patientName)
+    if (info?.age !== null && info?.age !== undefined) lines.push('【年龄】' + info.age)
+    if (info?.gender) lines.push('【性别】' + info.gender)
+    if (info?.categoryName) lines.push('【问诊科室】' + info.categoryName)
+    if (info?.remark) lines.push('【特殊情况备注】' + info.remark)
+    lines.push('')
+    lines.push('【问诊记录】')
+    for (const msg of messages.value) {
+      const role = msg.role === 'user' ? '用户' : 'AI助手'
+      lines.push(role + '：' + msg.content)
+    }
+
+    // AI 结构化：将问诊记录 + 病例库数据表格式要求组装成 prompt 送给模型，模型输出规定 JSON
+    let aiSummary: string | null = null
+    let finalTitle = info?.consultName || session.value?.sessionName || '我的问诊'
+    let finalCategoryId: number | null = info?.categoryId ?? null
+    try {
+      const summary = await llmApi.summarizeCase(selectedModel.value, messages.value, props.consultInfo, props.categories)
+      aiSummary = JSON.stringify(summary)
+      if (summary.title) finalTitle = summary.title
+      if (summary.category_id !== null && summary.category_id !== undefined) finalCategoryId = summary.category_id
+    } catch (error) {
+      console.warn('AI结构化病例失败，使用基础信息保存', error)
+    }
+
+    const payload: UserCaseAddDTO = {
+      userId: userStore.userInfo.id,
+      title: finalTitle,
+      patientName: info?.patientName || '',
+      age: info?.age ?? null,
+      gender: info?.gender || '',
+      categoryId: finalCategoryId,
+      remark: info?.remark || '',
+      content: lines.join('\n'),
+      aiSummary: aiSummary || undefined,
+      isPublic: 0
+    }
+
+    await userCaseApi.save(payload)
+    ElMessage.success('病例已记录，可在「我的病例」中查看')
+  } catch (error) {
+    console.error('记录病例失败', error)
+    ElMessage.error('记录病例失败，请稍后重试')
+  } finally {
+    userCaseSaving.value = false
+  }
 }
 
 const createNewSession = () => {
@@ -362,6 +437,7 @@ onUnmounted(() => {
         <ElButton type="info" @click="generateChatDocument" :icon="Document" size="small" :loading="documentLoading">
           生成问诊文档
         </ElButton>
+        <ElButton type="success" @click="saveAsUserCase" plain size="small" :loading="userCaseSaving">记录病例</ElButton>
         <ElButton type="danger" @click="clearMessages" plain size="small" :loading="loading">清空记录</ElButton>
         <ElButton type="primary" @click="createNewSession" :icon="Plus" circle />
       </div>

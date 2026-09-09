@@ -86,6 +86,10 @@
         <div class="header-right">
           <AlgoHealthCheck class="health-check" />
           <div class="user-actions">
+            <router-link to="/user/my-cases" class="action-item">
+              <el-icon><Document /></el-icon>
+              <span>我的病例</span>
+            </router-link>
             <router-link to="/user/favorites" class="action-item">
               <el-icon><Star /></el-icon>
               <span>病例收藏</span>
@@ -133,10 +137,10 @@
           </div>
           <div class="footer-info">
             <p>© 2025 AI医生 版权所有</p>
-            <p>前端：Vue 3 + TypeScript + Vite + Element Plus + Pinia + Axios + ECharts + WebSocket | </p>
+            <p>前端：Vue 3 + TypeScript + Vite + Element Plus + Pinia + Axios + ECharts | </p>
               <p>后端：Spring Boot + MyBatis-Plus + MySQL + JWT |</p>
               <p> 算法服务：FastAPI + Python + RAG + 向量检索 | </p>
-              <p> 文件服务：FastAPI | 核心技术：检索增强生成、TF-IDF、余弦相似度</p>
+              <p> 算法服务：FastAPI + Python + RAG + 向量检索 + 文件管理 | 核心技术：检索增强生成、TF-IDF、余弦相似度</p>
           </div>
         </div>
       </div>
@@ -150,7 +154,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import AlgoHealthCheck from './AlgoHealthCheck.vue'
 import { categoryApi } from '@/api/category'
-import { Search, Star, View, User, House, Menu, ChatDotRound, Grid, ArrowDown, Setting } from '@element-plus/icons-vue'
+import { Search, Star, View, User, House, Menu, ChatDotRound, Grid, ArrowDown, Setting, Document } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()

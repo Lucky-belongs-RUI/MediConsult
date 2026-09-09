@@ -25,19 +25,5 @@ export const itemApi = {
 
   listByCategoryId: (categoryId: number) => {
     return request.get<ItemVO[]>(`/item/list/category/${categoryId}`)
-  },
-
-  listByTag: (tag: string) => {
-    return request.get<ItemVO[]>(`/item/list/tag/${tag}`)
-  },
-
-  batchImport: (file: File) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return request.post<{ successCount: number, failureCount: number, errors: string[] }>('/item/batch-import', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
   }
-} 
+}

@@ -5,6 +5,7 @@
 - LLM 模型列表与问答能力（支持可选 RAG、图片信息占位）
 - 向量检索索引的构建、查询及删除
 - 问诊与病例文档生成与下载
+- 文件管理（上传 / 下载 / 删除，由原独立文件服务合并而来）
 - 健康检查接口
 
 ## 目录结构
@@ -42,9 +43,10 @@ uvicorn main:app --reload --port 5000
 | 变量 | 说明 | 默认值 |
 | ---- | ---- | ------ |
 | `SPRINGBOOT_API_BASE` | Java 后端 API 网关地址 | `http://localhost:8090/api` |
-| `FILE_SERVICE_BASE` | 文件服务外网地址，用于生成文件 URL | `http://localhost:5001` |
+| `FILE_SERVICE_BASE` | 文件接口对外地址（合并后即本服务自身地址） | `http://localhost:5000` |
 | `ALGO_DATA_DIR` | 索引等数据存储路径 | `<project>/algo_service/data` |
 | `ALGO_DOCS_DIR` | 文档存储路径 | `<project>/algo_service/data/docs` |
+| `FILE_STORAGE_ROOT` | 文件存储根目录 | `<project>/algo_service/data/files` |
 | `ALIYUN_API_KEY` | 调用阿里云通义千问所需的 API Key | `None`（必须手动配置） |
 | `ALIYUN_MODEL` | 默认使用的模型名称 | `qwen-plus` |
 | `ALIYUN_API_BASE` | OpenAI 兼容协议的网关地址 | `https://dashscope.aliyuncs.com/compatible-mode/v1` |
@@ -74,5 +76,9 @@ uvicorn main:app --reload --port 5000
 | POST | `/document/generate-case-document` | 生成病例文档 |
 | POST | `/document/generate-chat-document` | 生成问诊对话文档 |
 | GET | `/document/download/{objectKey}` | 下载生成的文档 |
+| GET | `/file/health` | 文件接口健康检查 |
+| POST | `/file/upload/{bucket}` | 上传文件（multipart/form-data，`file` 字段） |
+| GET | `/file/{bucket}/{objectKey}` | 下载文件 |
+| DELETE | `/file/{bucket}/{objectKey}` | 删除文件 |
 
-所有接口均返回 `{ code, msg, data }` 格式，与前端 `algoRequest` 保持一致。
+所有接口均返回 `{ code, msg, data }` 格式，与前端 `algoRequest` / `fileRequest` 保持一致。

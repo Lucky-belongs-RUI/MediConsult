@@ -31,12 +31,13 @@ _load_env_file(CONFIG_FILE)
 
 DATA_DIR = Path(os.getenv("ALGO_DATA_DIR", BASE_DIR / "data"))
 DOCS_DIR = Path(os.getenv("ALGO_DOCS_DIR", DATA_DIR / "docs"))
+FILE_STORAGE_ROOT = Path(os.getenv("FILE_STORAGE_ROOT", DATA_DIR / "files"))
 VECTOR_INDEX_FILE = Path(os.getenv("ALGO_VECTOR_INDEX", DATA_DIR / "vector_index.json"))
 SPRINGBOOT_API_BASE = os.getenv("SPRINGBOOT_API_BASE", "http://localhost:8090/api")
-FILE_SERVICE_BASE = os.getenv("FILE_SERVICE_BASE", "http://localhost:5001")
-ALIYUN_API_BASE = os.getenv("ALIYUN_API_BASE", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+FILE_SERVICE_BASE = os.getenv("FILE_SERVICE_BASE", "http://localhost:5000")
+ALIYUN_API_BASE = os.getenv("ALIYUN_API_BASE", "https://open.bigmodel.cn/api/paas/v4")
 ALIYUN_API_KEY = os.getenv("ALIYUN_API_KEY")
-ALIYUN_MODEL = os.getenv("ALIYUN_MODEL", "qwen-plus")
+ALIYUN_MODEL = os.getenv("ALIYUN_MODEL", "glm-4-flash")
 
 
 def _load_timeout(env_key: str, default: float) -> float:
@@ -52,7 +53,7 @@ def _load_timeout(env_key: str, default: float) -> float:
 ALIYUN_TIMEOUT = _load_timeout("ALIYUN_TIMEOUT", 30.0)
 
 
-for folder in {DATA_DIR, DOCS_DIR}:
+for folder in {DATA_DIR, DOCS_DIR, FILE_STORAGE_ROOT}:
     folder.mkdir(parents=True, exist_ok=True)
 
 
@@ -64,6 +65,7 @@ class Settings:
     vector_index_file: Path = VECTOR_INDEX_FILE
     docs_dir: Path = DOCS_DIR
     data_dir: Path = DATA_DIR
+    file_storage_root: Path = FILE_STORAGE_ROOT
     aliyun_api_base: str = ALIYUN_API_BASE.rstrip("/")
     aliyun_api_key: Optional[str] = ALIYUN_API_KEY
     aliyun_model: str = ALIYUN_MODEL

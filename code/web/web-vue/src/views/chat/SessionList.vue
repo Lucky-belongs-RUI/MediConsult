@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref,computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref,computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElButton, ElPopconfirm, ElInput } from 'element-plus'
 import { Plus, Delete, Edit } from '@element-plus/icons-vue'
 import { chatApi } from '@/api/chat'
@@ -113,8 +113,6 @@ const handleRefreshSessionList = () => {
   loadSessions()
 }
 
-watch(() => props.currentSessionId, () => {
-}, { immediate: true })
 
 onMounted(() => {
   loadSessions()

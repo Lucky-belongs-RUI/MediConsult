@@ -5,10 +5,6 @@
         <div class="card-header">
           <span>病例管理</span>
           <div class="header-actions">
-            <el-button type="success" @click="openBatchImportDialog">
-              <el-icon><Upload /></el-icon>
-              批量导入
-            </el-button>
             <el-button type="primary" @click="openAddDialog">
               添加病例
             </el-button>
@@ -138,64 +134,6 @@
         />
       </div>
 
-      <el-dialog
-        v-model="showBatchImportDialog"
-        title="批量导入病例"
-        width="600px"
-        :before-close="cancelBatchImportDialog"
-      >
-        <div class="batch-import-content">
-          <el-alert
-            title="批量导入说明"
-            type="info"
-            :closable="false"
-            style="margin-bottom: 20px;"
-          >
-            <template #default>
-              <div class="import-instructions">
-                <p>请上传包含病例数据的ZIP压缩包文件，格式要求：</p>
-                <ul>
-                  <li><strong>只支持ZIP格式压缩包</strong>（不支持RAR、7Z等格式）</li>
-                  <li>压缩包内必须包含一个 <code>data.json</code> 文件，存储病例数据</li>
-                  <li>压缩包内可选包含 <code>images</code> 目录，存储封面图片</li>
-                  <li>JSON文件中的图片路径需要与images目录中的文件名一致</li>
-                  <li>支持的图片格式：jpg、jpeg、png、gif</li>
-                  <li>单个图片不超过10MB，总压缩包不超过500MB</li>
-                </ul>
-              </div>
-            </template>
-          </el-alert>
-
-          <el-upload
-            ref="batchUploadRef"
-            :http-request="handleBatchImport"
-            :show-file-list="false"
-            :before-upload="beforeBatchUpload"
-            accept=".zip"
-            drag
-            class="batch-upload"
-          >
-            <div class="upload-content">
-              <el-icon class="upload-icon"><UploadFilled /></el-icon>
-              <div class="upload-text">
-                <p>将ZIP压缩包拖到此处，或<em>点击上传</em></p>
-                <p class="upload-tip">🗂️ 只支持ZIP格式 | 📄 必需data.json文件</p>
-              </div>
-            </div>
-          </el-upload>
-
-          <div v-if="batchImportProgress" class="import-progress">
-            <el-progress :percentage="batchImportProgress" :status="batchImportStatus" />
-            <p class="progress-text">{{ batchImportProgressText }}</p>
-          </div>
-        </div>
-
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="cancelBatchImportDialog" :disabled="batchImportLoading">取消</el-button>
-          </span>
-        </template>
-      </el-dialog>
 
       <el-dialog
         v-model="showDialog"
@@ -426,12 +364,12 @@
 import { ref, onMounted, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { FormInstance, UploadRequestOptions, UploadFile, UploadFiles } from 'element-plus'
+import type { FormInstance, UploadRequestOptions } from 'element-plus'
 import { itemApi } from '@/api/item'
 import { categoryApi } from '@/api/category'
 import { fileRequest } from '@/api/file_request'
 import type { ItemVO, ItemAddDTO, ItemUpdateDTO, CategoryVO } from '@/types/item'
-import { Picture, View, Edit, Delete, Document, UploadFilled, Upload } from '@element-plus/icons-vue'
+import { Picture, View, Edit, Delete, Document } from '@element-plus/icons-vue'
 import { userApi } from '@/api/user' 
 import type { UserVO } from '@/types/user' 
 const router = useRouter()
@@ -442,18 +380,10 @@ const tableData = ref<ItemVO[]>([])
 const showDialog = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const formRef = ref<FormInstance | null>(null)
-const coverUploadRef = ref()
-const fileUploadRef = ref()
 const coverPreviewUrl = ref('')
 const categories = ref<CategoryVO[]>([])
 const uploadedFileName = ref('')
 const users = ref<UserVO[]>([])
-const showBatchImportDialog = ref(false)
-const batchUploadRef = ref()
-const batchImportLoading = ref(false)
-const batchImportProgress = ref(0)
-const batchImportStatus = ref<'success' | 'exception' | undefined>(undefined)
-const batchImportProgressText = ref('')
 
 const pagination = reactive({
   page: 1,
@@ -739,20 +669,6 @@ const uploadFile = async (file: File) => {
   }
 }
 
-const handleCoverUploadChange = (uploadFile: UploadFile, uploadFiles: UploadFiles) => {
-  if (uploadFile.raw) {
-    uploadCover(uploadFile.raw)
-  }
-}
-
-const handleFileUploadChange = (uploadFileObj: UploadFile, uploadFiles: UploadFiles) => {
-  if (uploadFileObj.raw) {
-    const processFile = async (file: File) => {
-      await uploadFile(file);
-    };
-    processFile(uploadFileObj.raw);
-  }
-}
 
 const cancelDialog = () => {
   showDialog.value = false
@@ -976,96 +892,6 @@ const loadMedicalDataFromForm = () => {
   }
 }
 
-const openBatchImportDialog = () => {
-  showBatchImportDialog.value = true
-  batchImportProgress.value = 0
-  batchImportStatus.value = undefined
-  batchImportProgressText.value = ''
-}
-
-const cancelBatchImportDialog = () => {
-  if (batchImportLoading.value) {
-    ElMessageBox.confirm('正在导入中，确定要取消吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(() => {
-      showBatchImportDialog.value = false
-      batchImportLoading.value = false
-      batchImportProgress.value = 0
-      batchImportStatus.value = undefined
-      batchImportProgressText.value = ''
-    }).catch(() => {})
-  } else {
-    showBatchImportDialog.value = false
-    batchImportProgress.value = 0
-    batchImportStatus.value = undefined
-    batchImportProgressText.value = ''
-  }
-}
-
-const beforeBatchUpload = (file: File) => {
-  const isValidType = /\.zip$/i.test(file.name)
-  if (!isValidType) {
-    ElMessage.error('只支持ZIP格式的压缩包文件')
-    return false
-  }
-
-  const isLt500M = file.size / 1024 / 1024 < 500
-  if (!isLt500M) {
-    ElMessage.error('压缩包大小不能超过500MB')
-    return false
-  }
-
-  return true
-}
-
-const handleBatchImport = async (options: any) => {
-  try {
-    batchImportLoading.value = true
-    batchImportProgress.value = 10
-    batchImportProgressText.value = '正在上传文件...'
-    
-    const file = options.file as File
-    const result = await itemApi.batchImport(file)
-    
-    batchImportProgress.value = 100
-    batchImportStatus.value = 'success'
-    batchImportProgressText.value = `导入完成！成功：${result.successCount} 个，失败：${result.failureCount} 个`
-    
-    if (result.failureCount > 0 && result.errors && result.errors.length > 0) {
-      ElMessageBox.alert(
-        result.errors.join('\n'),
-        '导入错误详情',
-        {
-          confirmButtonText: '确定',
-          type: 'warning',
-          customClass: 'import-error-dialog'
-        }
-      )
-    } else {
-      ElMessage.success(`批量导入成功！共导入 ${result.successCount} 个病例`)
-    }
-
-    await fetchData()
-
-    setTimeout(() => {
-      showBatchImportDialog.value = false
-      batchImportProgress.value = 0
-      batchImportStatus.value = undefined
-      batchImportProgressText.value = ''
-    }, 2000)
-    
-  } catch (error) {
-    console.error('批量导入失败', error)
-    batchImportProgress.value = 100
-    batchImportStatus.value = 'exception'
-    batchImportProgressText.value = '导入失败，请检查ZIP文件格式'
-    ElMessage.error('批量导入失败，请检查ZIP文件格式和数据内容')
-  } finally {
-    batchImportLoading.value = false
-  }
-}
 
 onMounted(() => {
   fetchData()
@@ -1497,118 +1323,4 @@ onMounted(() => {
   margin: 0 8px;
 }
 
-.batch-import-content {
-  padding: 20px 0;
-}
-
-.import-instructions p {
-  margin: 10px 0;
-  font-size: 14px;
-  color: #606266;
-}
-
-.import-instructions ul {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.import-instructions li {
-  margin: 5px 0;
-  font-size: 13px;
-  color: #909399;
-  line-height: 1.5;
-}
-
-.import-instructions code {
-  background-color: #f5f7fa;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-  color: #e6a23c;
-}
-
-.batch-upload {
-  margin: 20px 0;
-}
-
-.batch-upload :deep(.el-upload) {
-  border: 2px dashed #d9d9d9;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s;
-  width: 100%;
-  height: 160px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.batch-upload :deep(.el-upload:hover) {
-  border-color: #409EFF;
-}
-
-.batch-upload :deep(.el-upload.is-dragover) {
-  border-color: #409EFF;
-  background-color: rgba(64, 158, 255, 0.06);
-}
-
-.upload-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  height: 100%;
-}
-
-.upload-icon {
-  font-size: 48px;
-  color: #c0c4cc;
-  margin-bottom: 16px;
-}
-
-.upload-text p {
-  font-size: 16px;
-  color: #606266;
-  margin: 8px 0;
-}
-
-.upload-text em {
-  color: #409EFF;
-  font-style: normal;
-}
-
-.upload-tip {
-  font-size: 12px;
-  color: #909399 !important;
-}
-
-.import-progress {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 6px;
-}
-
-.progress-text {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 14px;
-  color: #606266;
-}
-
-:deep(.import-error-dialog) {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-:deep(.import-error-dialog .el-message-box__message) {
-  white-space: pre-line;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-}
 </style> 

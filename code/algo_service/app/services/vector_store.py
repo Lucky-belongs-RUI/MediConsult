@@ -11,11 +11,27 @@ from typing import Dict, List, Tuple
 from app.config import settings
 
 
-TOKEN_PATTERN = re.compile(r"[\w']+")
+ASCII_TOKEN_PATTERN = re.compile(r"[a-zA-Z0-9_']+")
+CJK_RUN_PATTERN = re.compile(r"[\u4e00-\u9fff]+")
 
 
 def tokenize(text: str) -> List[str]:
-    return [token.lower() for token in TOKEN_PATTERN.findall(text or "")]
+    """分词：英文/数字按词切分并小写；中文按 1-gram + 2-gram 展开，
+    保证子串查询（如“高血压”命中“高血压复诊记录”）可被召回。"""
+    text = text or ""
+    tokens: List[str] = []
+    for match in ASCII_TOKEN_PATTERN.findall(text):
+        tokens.append(match.lower())
+    for run in CJK_RUN_PATTERN.findall(text):
+        run_len = len(run)
+        if run_len == 1:
+            tokens.append(run)
+            continue
+        for i in range(run_len):
+            tokens.append(run[i])
+        for i in range(run_len - 1):
+            tokens.append(run[i:i + 2])
+    return tokens
 
 
 @dataclass

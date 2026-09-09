@@ -176,6 +176,21 @@
               删除现有知识图谱，删除后将无法使用知识图谱检索
             </div>
           </div>
+
+          <div class="button-item">
+            <el-button 
+              type="primary" 
+              :icon="View"
+              @click="graphVisible = true"
+              :disabled="!knowledgeGraph.exists"
+              size="large"
+            >
+              查看知识图谱
+            </el-button>
+            <div class="button-desc">
+              可视化查看已构建的知识图谱节点与关系
+            </div>
+          </div>
         </div>
       </div>
       
@@ -193,20 +208,6 @@
             </el-button>
             <div class="button-desc">
               重新获取当前索引的创建状态和统计信息
-            </div>
-          </div>
-          
-          <div class="button-item">
-            <el-button 
-              type="warning" 
-              @click="refreshAllStats"
-              :icon="Refresh"
-              size="large"
-            >
-              刷新统计
-            </el-button>
-            <div class="button-desc">
-              重新加载系统统计数据，更新页面显示内容
             </div>
           </div>
         </div>
@@ -247,18 +248,18 @@
           </div>
         </el-alert>
       </div>
+
+      <KnowledgeGraphViewer v-model:visible="graphVisible" />
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, Refresh, Plus, Delete, Upload, Link } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus, Delete, Upload, Link, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { vectorIndexApi, knowledgeGraphApi, type VectorIndexInfo, type KnowledgeGraphInfo } from '@/api/vector'
-import { itemApi } from '@/api/item'
-import { categoryApi } from '@/api/category'
-import { getUserList } from '@/api/user'
+import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer.vue'
 
 const vectorIndex = ref<VectorIndexInfo>({
   exists: false,
@@ -278,13 +279,10 @@ const deleting = ref(false)
 
 const kgBuilding = ref(false)
 const kgDeleting = ref(false)
+const graphVisible = ref(false)
 
 const uploadRef = ref()
 const selectedFile = ref<File | null>(null)
-
-const userCount = ref(0)
-const caseCount = ref(0)
-const categoryCount = ref(0)
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -471,25 +469,6 @@ const refreshIndexStatus = async () => {
     getKnowledgeGraphStatus()
   ])
   ElMessage.success('状态已刷新')
-}
-
-const refreshAllStats = async () => {
-  try {
-    const [userResult, caseResult, categoryResult] = await Promise.all([
-      getUserList({ current: 1, size: 1 }),
-      itemApi.page({ current: 1, size: 1 }),
-      categoryApi.page({ current: 1, size: 1 })
-    ])
-    
-    userCount.value = userResult.total || 0
-    caseCount.value = caseResult.total || 0
-    categoryCount.value = categoryResult.total || 0
-    
-    ElMessage.success('统计数据已刷新')
-  } catch (error) {
-    console.error('刷新统计数据失败:', error)
-    ElMessage.error('刷新统计数据失败')
-  }
 }
 
 onMounted(async () => {

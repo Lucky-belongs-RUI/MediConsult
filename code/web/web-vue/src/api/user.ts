@@ -39,10 +39,6 @@ export const getUserList = (params: UserQueryParams) => {
   return request.get<PageVO<UserInfo>>('/user/page', { params })
 }
 
-export const getUserInfo = (id: number) => {
-  return request.get<UserInfo>(`/user/${id}`)
-}
-
 export const addUser = (data: UserForm) => {
   return request.post<void>('/user', data)
 }
@@ -61,4 +57,4 @@ export const resetPassword = (id: number) => {
 
 export const updateUserStatus = (data: { id: number; status: number }) => {
   return request.put<void>(`/user/${data.id}/status`, { status: data.status })
-} 
+}

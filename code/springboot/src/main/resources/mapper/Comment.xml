@@ -5,21 +5,32 @@
 <!-- 注意：namespace 需与实际 Mapper 接口路径一致 -->
 <mapper namespace="com.example.springboot.mapper.CommentMapper">
 
-    <!-- 通用查询字段（包含表中所有字段，避免重复编写） -->
+    <!-- 通用查询字段（join user 表填充 userInfo / replyToUserInfo，供前端展示评论人与回复对象） -->
     <sql id="commentFields">
-        id,
-        user_id,
-        username,
-        avatar,
-        item_id,
-        content,
-        parent_id,
-        reply_to_comment_id,
-        reply_to_user_id,
-        reply_to_username,
-        reply_to_avatar,
-        create_time,
-        update_time
+        c.id,
+        c.user_id as userId,
+        c.item_id as itemId,
+        c.content,
+        c.parent_id as parentId,
+        c.reply_to_comment_id as replyToCommentId,
+        c.reply_to_user_id as replyToUserId,
+        c.create_time as createTime,
+        c.update_time as updateTime,
+        u.id as "userInfo.id",
+        u.username as "userInfo.username",
+        u.avatar_bucket as "userInfo.avatarBucket",
+        u.avatar_object_key as "userInfo.avatarObjectKey",
+        ru.id as "replyToUserInfo.id",
+        ru.username as "replyToUserInfo.username",
+        ru.avatar_bucket as "replyToUserInfo.avatarBucket",
+        ru.avatar_object_key as "replyToUserInfo.avatarObjectKey"
+    </sql>
+
+    <!-- 通用 join 片段 -->
+    <sql id="commentJoins">
+        FROM comment c
+        LEFT JOIN user u ON c.user_id = u.id
+        LEFT JOIN user ru ON c.reply_to_user_id = ru.id
     </sql>
 
     <!-- 新增评论（忽略自增ID和自动填充时间） -->
@@ -47,15 +58,14 @@
         #{replyToUserInfo.username},
         #{replyToUserInfo.avatar}
         )
-        <!-- 如需返回自增ID，添加如下配置（MyBatis 通用） -->
         <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
             SELECT LAST_INSERT_ID()
         </selectKey>
     </insert>
 
-    <!-- 根据主键ID删除评论（修正原逻辑：原按item_id删除不合理） -->
+    <!-- 删除评论并级联删除其全部子回复（含按 parent_id 与 reply_to_comment_id 挂靠的回复） -->
     <delete id="deleteById" parameterType="java.lang.Long">
-        DELETE FROM comment WHERE id = #{id}
+        DELETE FROM comment WHERE id = #{id} OR parent_id = #{id} OR reply_to_comment_id = #{id}
     </delete>
 
     <!-- 批量删除（可选扩展：按item_id删除该项目下所有评论） -->
@@ -67,59 +77,61 @@
     <select id="list" resultType="com.example.springboot.entity.Comment">
         SELECT
         <include refid="commentFields"/>
-        FROM comment
-        ORDER BY create_time DESC
+        <include refid="commentJoins"/>
+        ORDER BY c.create_time DESC
     </select>
 
     <!-- 多条件查询评论（支持用户ID、项目ID、父评论ID筛选） -->
-    <select id="listByCondition" parameterType="com.example.springboot.entity.Comment" resultType="com.example.springboot.entity.Comment">
+    <select id="listByCondition" parameterType="com.example.springboot.common.DataRequset.CommentPageRequest" resultType="com.example.springboot.entity.Comment">
         SELECT
         <include refid="commentFields"/>
-        FROM comment
+        <include refid="commentJoins"/>
         <where>
-            <!-- 数值类型无需判断 !=''，仅判断 !=null -->
             <if test="userId != null">
-                AND user_id = #{userId}
+                AND c.user_id = #{userId}
             </if>
             <if test="itemId != null">
-                AND item_id = #{itemId}
+                AND c.item_id = #{itemId}
             </if>
             <if test="parentId != null">
-                AND parent_id = #{parentId} <!-- 筛选某条评论的所有子评论 -->
+                AND c.parent_id = #{parentId} <!-- 筛选某条评论的所有子评论 -->
             </if>
         </where>
-        ORDER BY create_time DESC
+        ORDER BY c.create_time DESC
     </select>
+
+    <!-- 查询某病例下全部评论（含子回复，供前端组装评论树） -->
     <select id="getByAllId" resultType="com.example.springboot.entity.Comment">
-        select
-        *
-        from comment
-        where item_id = #{itemId}
+        SELECT
+        <include refid="commentFields"/>
+        <include refid="commentJoins"/>
+        WHERE c.item_id = #{itemId}
     </select>
-    <!-- 根据主键ID查询单个评论（修正原逻辑：原按item_id查询不合理） -->
+
+    <!-- 根据主键ID查询单个评论 -->
     <select id="getById" parameterType="java.lang.Long" resultType="com.example.springboot.entity.Comment">
         SELECT
         <include refid="commentFields"/>
-        FROM comment
-        WHERE id = #{id}
+        <include refid="commentJoins"/>
+        WHERE c.id = #{id}
     </select>
 
-    <!-- 根据项目ID查询所有评论（原 getByAllId 逻辑修正，重命名更清晰） -->
+    <!-- 根据项目ID查询所有评论 -->
     <select id="listByItemId" parameterType="java.lang.Long" resultType="com.example.springboot.entity.Comment">
         SELECT
         <include refid="commentFields"/>
-        FROM comment
-        WHERE item_id = #{itemId}
-        ORDER BY create_time DESC
+        <include refid="commentJoins"/>
+        WHERE c.item_id = #{itemId}
+        ORDER BY c.create_time DESC
     </select>
 
-    <!-- 根据用户ID查询该用户的所有评论（修正原逻辑：去掉无效的status字段） -->
+    <!-- 根据用户ID查询该用户的所有评论 -->
     <select id="getByUserId" parameterType="java.lang.Long" resultType="com.example.springboot.entity.Comment">
         SELECT
         <include refid="commentFields"/>
-        FROM comment
-        WHERE user_id = #{userId}
-        ORDER BY create_time DESC
+        <include refid="commentJoins"/>
+        WHERE c.user_id = #{userId}
+        ORDER BY c.create_time DESC
     </select>
 
 </mapper>

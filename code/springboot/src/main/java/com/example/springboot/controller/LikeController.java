@@ -56,9 +56,9 @@ public class LikeController {
     public Result page(FavoritePageRequest pageRequest){
         return Result.success(likeService.page(pageRequest));
     }
-    @DeleteMapping("/{id}")
-    public Result delete(@PathVariable Integer id){
-        likeService.deleteById(id);
+    @DeleteMapping("/{itemId}")
+    public Result delete(@PathVariable Integer itemId, @RequestParam Integer userId){
+        likeService.deleteById(itemId, userId);
         return Result.success();
     }
 

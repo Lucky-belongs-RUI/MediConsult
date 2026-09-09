@@ -8,5 +8,5 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "file-service")
 public class FileServiceConfig {
-    private String url = "http://127.0.0.1:5001/api";
+    private String url = "http://127.0.0.1:5000/api";
 }

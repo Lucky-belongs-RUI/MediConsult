@@ -6,9 +6,7 @@ import com.example.springboot.common.DataRequset.UserPageRequest;
 import com.example.springboot.common.Result;
 import com.example.springboot.dto.UserLoginDTO;
 import com.example.springboot.entity.User;
-import com.example.springboot.service.ItemService;
 import com.example.springboot.service.UserService;
-import com.example.springboot.vo.ItemVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,15 +97,6 @@ public class UserController {
 
         userService.updateUserStatus(id, status);
         return Result.success("用户状态修改成功");
-    }
-
-    @Autowired
-    ItemService itemService;
-
-    @GetMapping("/item/{id}")
-    public Result getById(@PathVariable Integer id){
-        ItemVO obj=itemService.getById(id);
-        return Result.success(obj);
     }
 
 

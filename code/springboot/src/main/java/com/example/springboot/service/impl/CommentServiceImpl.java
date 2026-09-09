@@ -1,8 +1,10 @@
 package com.example.springboot.service.impl;
 
 
-import com.example.springboot.common.DataRequset.BaseRequest;
+import com.example.springboot.common.DataRequset.CommentPageRequest;
+import com.example.springboot.config.FileServiceConfig;
 import com.example.springboot.entity.Comment;
+import com.example.springboot.entity.User;
 import com.example.springboot.mapper.CommentMapper;
 import com.example.springboot.service.CommentService;
 import com.example.springboot.vo.PageVo;
@@ -21,15 +23,43 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     CommentMapper commentMapper;
 
+    @Autowired
+    FileServiceConfig fileServiceConfig;
+
+    /** 组装用户头像 URL（与 ItemServiceImpl.buildFileUrl 同规则） */
+    private void fillAvatarUrl(User user) {
+        if (user != null && user.getAvatarBucket() != null && !user.getAvatarBucket().isEmpty()
+                && user.getAvatarObjectKey() != null && !user.getAvatarObjectKey().isEmpty()) {
+            user.setAvatarUrl(fileServiceConfig.getUrl() + "/file/" + user.getAvatarBucket() + "/" + user.getAvatarObjectKey());
+        }
+    }
+
+    /** 为评论及其回复填充 userInfo / replyToUserInfo 的头像 URL */
+    private void fillCommentAvatarUrls(List<Comment> comments) {
+        if (comments == null) {
+            return;
+        }
+        for (Comment comment : comments) {
+            fillAvatarUrl(comment.getUserInfo());
+            fillAvatarUrl(comment.getReplyToUserInfo());
+            if (comment.getReplies() != null) {
+                for (Comment reply : comment.getReplies()) {
+                    fillAvatarUrl(reply.getUserInfo());
+                    fillAvatarUrl(reply.getReplyToUserInfo());
+                }
+            }
+        }
+    }
+
     @Override
     public List<Comment> list(){
         return commentMapper.list();
     }
 
     @Override
-    public PageVo page(BaseRequest baseRequest) {
-        PageHelper.startPage(baseRequest.getCurrent(), baseRequest.getSize());
-        List<Comment> users = commentMapper.listByCondition(baseRequest);
+    public PageVo page(CommentPageRequest pageRequest) {
+        PageHelper.startPage(pageRequest.getCurrent(), pageRequest.getSize());
+        List<Comment> users = commentMapper.listByCondition(pageRequest);
         PageInfo<Comment> userPageInfo = new PageInfo<>(users);
 
         return new PageVo(userPageInfo);
@@ -86,6 +116,8 @@ public class CommentServiceImpl implements CommentService {
                 }
             }
         }
+
+        fillCommentAvatarUrls(commentTree);
 
         return commentTree;
     }

@@ -12,6 +12,31 @@ export interface KnowledgeGraphInfo {
   triple_count: number
 }
 
+export interface KnowledgeGraphNode {
+  id: string
+  name: string
+  category: string
+  degree: number
+}
+
+export interface KnowledgeGraphEdge {
+  source: string
+  target: string
+  label: string
+  category: string
+}
+
+export interface KnowledgeGraphData {
+  exists: boolean
+  node_count: number
+  edge_count: number
+  total_node_count: number
+  total_edge_count: number
+  categories: string[]
+  nodes: KnowledgeGraphNode[]
+  edges: KnowledgeGraphEdge[]
+}
+
 export interface KnowledgeTriple {
   subject: string
   predicate: string
@@ -75,6 +100,11 @@ export const knowledgeGraphApi = {
     return algoRequest.get('/knowledge-graph/status')
   },
 
+  /** 获取构建好的知识图谱图数据（节点+关系） */
+  getGraph: (): Promise<KnowledgeGraphData> => {
+    return algoRequest.get('/knowledge-graph/graph')
+  },
+
   uploadFile: (file: File): Promise<UploadResponse> => {
     const formData = new FormData()
     formData.append('file', file)
@@ -91,17 +121,5 @@ export const knowledgeGraphApi = {
 
   delete: (): Promise<void> => {
     return algoRequest.delete('/knowledge-graph/delete')
-  },
-
-  search: (query: string, topK?: number, category?: string): Promise<KnowledgeTriple[]> => {
-    return algoRequest.post('/knowledge-graph/search', {
-      query,
-      top_k: topK || 5,
-      category
-    })
-  },
-
-  getCategories: (): Promise<Array<{id: string, name: string, description: string}>> => {
-    return algoRequest.get('/knowledge-graph/categories')
   }
 }

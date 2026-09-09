@@ -26,12 +26,19 @@ def _to_case_record(payload: dict) -> CaseRecord:
             extra_data = {"raw": extra_data}
     if not isinstance(extra_data, (dict, list)):
         extra_data = None
+
+    category_obj = payload.get("category")
+    if not isinstance(category_obj, dict):
+        category_obj = {}
+    category_name = payload.get("categoryName") or category_obj.get("name") or "未分类"
+    category_id = payload.get("categoryId") if payload.get("categoryId") is not None else category_obj.get("id")
+
     return CaseRecord(
         id=int(payload.get("id", 0) or 0),
         title=payload.get("title") or "未命名病例",
         description=payload.get("description") or "",
-        categoryName=payload.get("categoryName") or "未分类",
-        categoryId=payload.get("categoryId"),
+        categoryName=category_name,
+        categoryId=category_id,
         tags=payload.get("tags"),
         extraData=extra_data if isinstance(extra_data, dict) else None,
         coverBucket=payload.get("coverBucket"),
@@ -39,7 +46,7 @@ def _to_case_record(payload: dict) -> CaseRecord:
         fileBucket=payload.get("fileBucket"),
         fileObjectKey=payload.get("fileObjectKey"),
         userId=payload.get("userId"),
-        userName=payload.get("userName"),
+        userName=payload.get("userName") or payload.get("userRealName"),
         createTime=payload.get("createTime"),
         updateTime=payload.get("updateTime"),
     )

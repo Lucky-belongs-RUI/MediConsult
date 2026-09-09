@@ -83,15 +83,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void save(Category obj) {
-        String username = obj.getName();
-        Category existingUser = categoryMapper.selectByCategoryname(username);
-        if (existingUser != null) {
-            throw new ServiceException("科室名【" + username + "】已存在，请更换其他用户名");
+        String name = obj.getName();
+        Category existing = categoryMapper.selectByCategoryname(name);
+        if (existing != null) {
+            throw new ServiceException("科室名【" + name + "】已存在，请更换其他科室名");
         }
-
-
-
-        categoryMapper.save( obj);
+        categoryMapper.save(obj);
     }
 
 }
